@@ -128,7 +128,7 @@ class HttpRestRequest(HttpRequest):
             except ValueError as e:
                 msg = "Invalid JSON data: %s" % str(e)
                 _logger.info("%s: %s", self.httprequest.path, msg)
-                raise BadRequest(msg)
+                raise BadRequest(msg) from e
         elif self.httprequest.mimetype == "multipart/form-data":
             # Do not reassign self.params
             pass

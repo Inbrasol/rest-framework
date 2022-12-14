@@ -14,6 +14,7 @@ class RestMethodSecurityPlugin(BasePlugin):
         self._service = service
         self._supported_user_auths = user_auths
 
+    # pylint: disable=W8110
     def init_spec(self, spec):
         super(RestMethodSecurityPlugin, self).init_spec(spec)
         self.spec = spec

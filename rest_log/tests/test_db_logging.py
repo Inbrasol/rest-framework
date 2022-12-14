@@ -6,25 +6,29 @@ import json
 import mock
 
 from odoo import exceptions
-from odoo.http import Response
 from odoo.tools import mute_logger
 
-from odoo.addons.base_rest.tests.common import (
-    SavepointRestServiceRegistryCase,
-    TransactionRestServiceRegistryCase,
-)
+from odoo.addons.base_rest.controllers.main import _PseudoCollection
+from odoo.addons.base_rest.tests.common import TransactionRestServiceRegistryCase
 from odoo.addons.component.tests.common import new_rollbacked_env
 from odoo.addons.rest_log import exceptions as log_exceptions  # pylint: disable=W7950
 
 from .common import TestDBLoggingMixin
 
 
-class TestDBLogging(SavepointRestServiceRegistryCase, TestDBLoggingMixin):
+class TestDBLogging(TransactionRestServiceRegistryCase, TestDBLoggingMixin):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls._setup_registry(cls)
         cls.service = cls._get_service(cls)
         cls.log_model = cls.env["rest.log"].sudo()
+
+    @classmethod
+    def tearDownClass(cls):
+        # pylint: disable=W8110
+        cls._teardown_registry(cls)
+        super().tearDownClass()
 
     def test_log_enabled_conf_parsing(self):
         key1 = "coll1.service1.endpoint"
@@ -226,82 +230,48 @@ class TestDBLogging(SavepointRestServiceRegistryCase, TestDBLoggingMixin):
         expected["ValueError"] = "warning"
         self.assertEqual(mapping, expected)
 
-    def test_log_entry_values_success_with_response(self):
-        with self._get_mocked_request() as mocked_request:
-            res = Response(
-                b"A test .pdf file to download",
-                headers=[
-                    ("Content-Type", "application/pdf"),
-                    ("X-Content-Type-Options", "nosniff"),
-                    ("Content-Disposition", "attachment; filename*=UTF-8''test.pdf"),
-                    ("Content-Length", 28),
-                ],
-            )
-            res.status_code = 200
-            entry = self.service._log_call_in_db(
-                self.env, mocked_request, "method", result=res
-            )
-        self.assertEqual(entry.state, "success")
-        self.assertEqual(
-            json.loads(entry.result),
-            {
-                "headers": {
-                    "Content-Disposition": "attachment; filename*=UTF-8''test.pdf",
-                    "Content-Length": "28",
-                    "Content-Type": "application/pdf",
-                    "X-Content-Type-Options": "nosniff",
-                },
-                "status": 200,
-            },
-        )
-
-    def test_log_entry_values_failure_with_response(self):
-        with self._get_mocked_request() as mocked_request:
-            res = Response(b"", headers=[])
-            res.status_code = 418
-            entry = self.service._log_call_in_db(
-                self.env, mocked_request, "method", result=res
-            )
-        self.assertEqual(entry.state, "failed")
-        self.assertEqual(
-            json.loads(entry.result),
-            {
-                "headers": {
-                    "Content-Length": "0",
-                    "Content-Type": "text/html; charset=utf-8",
-                },
-                "status": 418,
-            },
-        )
-
 
 class TestDBLoggingExceptionBase(
     TransactionRestServiceRegistryCase, TestDBLoggingMixin
 ):
-    def setUp(self):
-        super().setUp()
-        self.service = self._get_service(self)
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._setup_registry(cls)
+
+    @classmethod
+    def tearDownClass(cls):
+        # pylint: disable=W8110
+        cls._teardown_registry(cls)
+        super().tearDownClass()
 
     def _test_exception(self, test_type, wrapping_exc, exc_name, severity):
         log_model = self.env["rest.log"].sudo()
         initial_entries = log_model.search([])
         entry_url_from_exc = None
-        with self._get_mocked_request():
-            try:
-                self.service.dispatch("fail", test_type)
-            except Exception as err:
-                # Not using `assertRaises` to inspect the exception directly
-                self.assertTrue(isinstance(err, wrapping_exc))
-                self.assertEqual(
-                    self.service._get_exception_message(err), "Failed as you wanted!"
-                )
-                entry_url_from_exc = err.rest_json_info["log_entry_url"]
+        # Context: we are running in a transaction case which uses savepoints.
+        # The log machinery is going to rollback the transation when catching errors.
+        # Hence we need a completely separated env for the service.
+        with new_rollbacked_env() as new_env:
+            # Init fake collection w/ new env
+            collection = _PseudoCollection(self._collection_name, new_env)
+            service = self._get_service(self, collection=collection)
+            with self._get_mocked_request(env=new_env):
+                try:
+                    service.dispatch("fail", test_type)
+                except Exception as err:
+                    # Not using `assertRaises` to inspect the exception directly
+                    self.assertTrue(isinstance(err, wrapping_exc))
+                    self.assertEqual(
+                        service._get_exception_message(err), "Failed as you wanted!"
+                    )
+                    entry_url_from_exc = err.rest_json_info["log_entry_url"]
 
-        with new_rollbacked_env() as env:
-            log_model = env["rest.log"].sudo()
+        with new_rollbacked_env() as new_env:
+            log_model = new_env["rest.log"].sudo()
             entry = log_model.search([]) - initial_entries
             expected = {
-                "collection": self.service._collection,
+                "collection": service._collection,
                 "state": "failed",
                 "result": "null",
                 "exception_name": exc_name,
@@ -309,21 +279,13 @@ class TestDBLoggingExceptionBase(
                 "severity": severity,
             }
             self.assertRecordValues(entry, [expected])
-            self.assertEqual(entry_url_from_exc, self.service._get_log_entry_url(entry))
+            self.assertEqual(entry_url_from_exc, service._get_log_entry_url(entry))
 
 
 class TestDBLoggingExceptionUserError(TestDBLoggingExceptionBase):
     @staticmethod
     def _get_test_controller(class_or_instance, root_path=None):
         # Override to avoid registering twice the same controller route.
-        # Disclaimer: to run these tests w/ need TransactionCase
-        # because the handling of the exception will do a savepoint rollback
-        # which causes SavepointCase to fail.
-        # When using the transaction case the rest_registry is initliazed
-        # at every test, same for the test controller.
-        # This leads to the error
-        # "Only one REST controller
-        # can be safely declared for root path /test_controller/"
         return super()._get_test_controller(
             class_or_instance, root_path="/test_log_exception_user/"
         )

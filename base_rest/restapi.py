@@ -313,6 +313,7 @@ class CerberusListValidator(CerberusValidator):
     def to_openapi_query_parameters(self, service, spec):
         raise NotImplementedError("List are not (?yet?) supported as query paramters")
 
+    # pylint: disable=W8120,W8115
     def _do_validate(self, service, data, direction):
         validator = self.get_cerberus_validator(service, direction)
         values = []
@@ -320,21 +321,27 @@ class CerberusListValidator(CerberusValidator):
         for idx, p in enumerate(data):
             if not validator.validate(p):
                 raise ExceptionClass(
-                    _("BadRequest item %s :%s") % (idx, validator.errors)
+                    _(
+                        "BadRequest item %(idx)s :%(errors)s",
+                        idx=idx,
+                        errors=validator.errors,
+                    )
                 )
             values.append(validator.document)
         if self._min_items is not None and len(values) < self._min_items:
             raise ExceptionClass(
                 _(
-                    "BadRequest: Not enough items in the list (%s < %s)"
-                    % (len(values), self._min_items)
+                    "BadRequest: Not enough items in the list (%(current)s < %(expected)s)",
+                    current=len(values),
+                    expected=self._min_items,
                 )
             )
         if self._max_items is not None and len(values) > self._max_items:
             raise ExceptionClass(
                 _(
-                    "BadRequest: Too many items in the list (%s > %s)"
-                    % (len(values), self._max_items)
+                    "BadRequest: Too many items in the list (%(current)s > %(expected)s)",
+                    current=len(values),
+                    expected=self._max_items,
                 )
             )
         return values
@@ -401,8 +408,12 @@ class MultipartFormData(RestMethodParam):
                     )  # multipart ony sends its parts as string
                 except json.JSONDecodeError as error:
                     raise ValidationError(
-                        _("{}'s JSON content is malformed: {}".format(key, error))
-                    )
+                        _(
+                            "%(key)'s JSON content is malformed: %(error)s",
+                            key=key,
+                            error=error,
+                        )
+                    ) from error
                 param = part.from_params(service, json_param)
             params[key] = param
         return params

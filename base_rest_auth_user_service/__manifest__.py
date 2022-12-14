@@ -4,11 +4,12 @@
 {
     "name": "REST Authentication Service",
     "summary": "Login/logout from session using a REST call",
-    "version": "14.0.1.1.0",
-    "development_status": "Beta",
+    "version": "15.0.1.0.1",
+    "development_status": "Alpha",
     "license": "LGPL-3",
     "website": "https://github.com/OCA/rest-framework",
     "author": "Wakari, Odoo Community Association (OCA)",
     "depends": ["base_rest"],
     "data": [],
+    "installable": True,
 }

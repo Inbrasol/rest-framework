@@ -68,6 +68,7 @@ class TestBuildDatamodel(DatamodelRegistryCase):
             ["base", "datamodel1", "datamodel2"], list(self.datamodel_registry)
         )
 
+    # pylint: disable=R7980
     def test_inherit_bases(self):
         """Check __bases__ of Datamodel with _inherit"""
 
@@ -205,6 +206,7 @@ class TestBuildDatamodel(DatamodelRegistryCase):
         # we inspect that our custom build has been executed
         self.assertTrue(self.env.datamodels["datamodel1"]._build_done)
 
+    # pylint: disable=W8110
     def test_inherit_attrs(self):
         """Check attributes inheritance of Datamodels with _inherit"""
 

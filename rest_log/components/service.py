@@ -9,7 +9,7 @@ import traceback
 from werkzeug.urls import url_encode, url_join
 
 from odoo import exceptions, registry
-from odoo.http import Response, request
+from odoo.http import request
 
 from odoo.addons.base_rest.http import JSONEncoder
 from odoo.addons.component.core import AbstractComponent
@@ -115,44 +115,18 @@ class BaseRESTService(AbstractComponent):
 
     def _log_call_in_db_values(self, _request, *args, params=None, **kw):
         httprequest = _request.httprequest
-        headers = self._log_call_sanitize_headers(dict(httprequest.headers or []))
-        params = dict(params or {})
+        headers = dict(httprequest.headers)
+        for header_key in self._log_call_header_strip:
+            if header_key in headers:
+                headers[header_key] = "<redacted>"
         if args:
-            params.update(args=args)
+            params = dict(params or {}, args=args)
+
         params = self._log_call_sanitize_params(params)
-        error, exception_name, exception_message = self._log_call_prepare_error(**kw)
-        result, state = self._log_call_prepare_result(kw.get("result"))
-        collection = self.work.collection
-        return {
-            "collection": collection._name,
-            "collection_id": collection.id,
-            "request_url": httprequest.url,
-            "request_method": httprequest.method,
-            "params": params,
-            "headers": headers,
-            "result": result,
-            "error": error,
-            "exception_name": exception_name,
-            "exception_message": exception_message,
-            "state": state,
-        }
 
-    def _log_call_prepare_result(self, result):
-        # NB: ``result`` might be an object of class ``odoo.http.Response``,
-        # for example when you try to download a file. In this case, we need to
-        # handle it properly, without the assumption that ``result`` is a dict.
-        if isinstance(result, Response):
-            status_code = result.status_code
-            result = {
-                "status": status_code,
-                "headers": self._log_call_sanitize_headers(dict(result.headers or [])),
-            }
-            state = "success" if status_code in range(200, 300) else "failed"
-        else:
-            state = "success" if result else "failed"
-        return result, state
-
-    def _log_call_prepare_error(self, traceback=None, orig_exception=None, **kw):
+        result = kw.get("result")
+        error = kw.get("traceback")
+        orig_exception = kw.get("orig_exception")
         exception_name = None
         exception_message = None
         if orig_exception:
@@ -160,29 +134,32 @@ class BaseRESTService(AbstractComponent):
             if hasattr(orig_exception, "__module__"):
                 exception_name = orig_exception.__module__ + "." + exception_name
             exception_message = self._get_exception_message(orig_exception)
-        return traceback, exception_name, exception_message
-
-    _log_call_in_db_keys_to_serialize = ("params", "headers", "result")
+        collection = self.work.collection
+        return {
+            "collection": collection._name,
+            "collection_id": collection.id,
+            "request_url": httprequest.url,
+            "request_method": httprequest.method,
+            "params": json_dump(params),
+            "headers": json_dump(headers),
+            "result": json_dump(result),
+            "error": error,
+            "exception_name": exception_name,
+            "exception_message": exception_message,
+            "state": "success" if result else "failed",
+        }
 
     def _log_call_in_db(self, env, _request, method_name, *args, params=None, **kw):
         values = self._log_call_in_db_values(_request, *args, params=params, **kw)
-        for k in self._log_call_in_db_keys_to_serialize:
-            values[k] = json_dump(values[k])
         enabled_states = self._get_matching_active_conf(method_name)
         if not values or enabled_states and values["state"] not in enabled_states:
             return
         return env["rest.log"].sudo().create(values)
 
-    def _log_call_sanitize_params(self, params: dict) -> dict:
+    def _log_call_sanitize_params(self, params):
         if "password" in params:
             params["password"] = "<redacted>"
         return params
-
-    def _log_call_sanitize_headers(self, headers: dict) -> dict:
-        for header_key in self._log_call_header_strip:
-            if header_key in headers:
-                headers[header_key] = "<redacted>"
-        return headers
 
     def _db_logging_active(self, method_name):
         enabled = self._log_calls_in_db
