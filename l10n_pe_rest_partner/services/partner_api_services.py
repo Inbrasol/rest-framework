@@ -40,7 +40,7 @@ class PartnerApiService(Component):
             res.append(PartnerInfo(
                 id=p.id,
                 name=p.name,
-                l10n_latam_identification_type_id = p.l10n_latam_identification_type_id.name,
+                #l10n_latam_identification_type_id = p.l10n_latam_identification_type_id.name,
                 vat = p.vat,
                 street = p.street,
                 zip_code = p.zip,
@@ -51,6 +51,7 @@ class PartnerApiService(Component):
                 company_type = p.company_type,
                 country = self.env.datamodels["l10n_pe.country.info"](id=p.country_id.id, name=p.country_id.name),
                 state = self.env.datamodels["l10n_pe.state.info"](id=p.state_id.id, name=p.state_id.name),
+                l10n_latam_identification_type =  self.env.datamodels["l10n_latam.identification.type.info"](id=p.l10n_latam_identification_type_id.id, name=p.l10n_latam_identification_type_id.name),
                 website = p.website,
                 ))
         return res

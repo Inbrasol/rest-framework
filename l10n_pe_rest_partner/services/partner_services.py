@@ -24,27 +24,23 @@ class PartnerService(Component):
 
     # pylint:disable=method-required-super
     def create(self, **params):
-        """
-        Create a new partner
-        """
-        #search before create
-        
-        if params.get("vat") and params.get("l10n_latam_identification_type_id"):
-            domain_partner = []
-            domain_partner.append(("vat", "=", params.get("vat")))
-            #Identification Type
-            domain_identification = []
-            domain_identification.append(("l10n_pe_vat_code", "=", params.get("l10n_latam_identification_type_id")))
-            identification_type = self.env["l10n_latam.identification.type"].search(domain_identification,limit=1)
-            if identification_type:
-                domain_partner.append(("l10n_latam_identification_type_id","=", identification_type.id))
-                partner_search = self.env["res.partner"].search(domain_partner)
+        if params.get("vat"):
+            print(params)
+            identification_type = self._get_l10n_latam_identification(params.get("l10n_latam_identification_type").get("l10n_pe_vat_code"))
+            print("------------identification_type-----------")
+            print(identification_type)
+            partner_search = self._get_by_document_type(params.get("l10n_latam_identification_type").get("l10n_pe_vat_code"),params.get("vat"))
+            if partner_search:
                 return self._to_json(partner_search)
-        #Create
-        if not partner_search:
-            partner = self.env["res.partner"].create(self._prepare_params(params))
-            return self._to_json(partner)
-
+            else :
+                prepare_params_doc_type = self._prepare_document_type_params(params,identification_type)
+                print("-----prepare_params_doc_type---------")
+                print(prepare_params_doc_type)
+                print("------------------create---------------------------")
+                create_params = self._prepare_params(prepare_params_doc_type)
+                print(create_params)
+                partner = self.env["res.partner"].create(self._prepare_params(create_params))
+                return self._to_json(partner)
  
     """@restapi.method(
         [(["/", "/update"], "GET")],
@@ -57,8 +53,10 @@ class PartnerService(Component):
         """
         Update partner informations
         """
-        partner = self._get_by_document_type(params.get("l10n_latam_identification_type_id"),params.get("vat"))
-        partner.write(self._prepare_params(params))
+        identification_type = self._get_l10n_latam_identification(params.get("l10n_latam_identification_type").get("l10n_pe_vat_code"))
+        partner = self._get_by_document_type(params.get("l10n_latam_identification_type").get("l10n_pe_vat_code"),params.get("vat"))
+        prepare_params_doc_type = self._prepare_document_type_params(params,identification_type)
+        partner.write(self._prepare_params(prepare_params_doc_type))
         return self._to_json(partner)
 
     def archive(self, _id, **params):
@@ -81,23 +79,43 @@ class PartnerService(Component):
     def _get(self, _id):
         return self.env["res.partner"].browse(_id)
     
-    def _get_by_document_type(self,_l10n_latam_identification_type_id,_vat):
+    def _get_by_document_type(self,_l10n_pe_vat_code,_vat):
         domain_partner = []
         domain_partner.append(("vat", "=", _vat))
         #Identification Type
         domain_identification = []
-        domain_identification.append(("l10n_pe_vat_code", "=", _l10n_latam_identification_type_id))
+        domain_identification.append(("l10n_pe_vat_code", "=", _l10n_pe_vat_code))
         identification_type = self.env["l10n_latam.identification.type"].search(domain_identification,limit=1)
         if identification_type:
             domain_partner.append(("l10n_latam_identification_type_id","=", identification_type.id))
         return self.env["res.partner"].search(domain_partner)
 
+    def _get_l10n_latam_identification(self,_l10n_pe_vat_code):
+        domain_identification = []
+        domain_identification.append(("l10n_pe_vat_code", "=", _l10n_pe_vat_code))
+        return self.env["l10n_latam.identification.type"].search(domain_identification,limit=1)
+
     def _prepare_params(self, params):
-        for key in ["country", "state","l10n_latam_identification_type"]:
+        for key in ["country", "state"]:
             if key in params:
                 val = params.pop(key)
                 if val.get("id"):
                     params["%s_id" % key] = val["id"]
+        
+        
+
+        return params
+
+    def _prepare_document_type_params(self, params,l10n_latam_identification_type):
+        for key in ["l10n_latam_identification_type"]:
+            if key in params:
+                print(l10n_latam_identification_type)
+                val = params.pop(key)
+                print("------val-----------")
+                print(val)
+                if val.get("l10n_pe_vat_code"):
+                    params["%s_id" % key] = l10n_latam_identification_type["id"]
+        print(params)
         return params
 
     # Validator
@@ -122,21 +140,23 @@ class PartnerService(Component):
     def _validator_create(self):
         res = {
             "name": {"type": "string", "required": True, "empty": False},
-            "l10n_latam_identification_type_id": {"type": "string", "required": False, "empty": False},
+            "company_type":{"type": "string", "required": True, "empty": False},
             "l10n_latam_identification_type":
             {
                 "type": "dict",
                 "schema": {
                     "id": {"type": "integer", "coerce": to_int, "nullable": True},
                     "name": {"type": "string"},
+                    "l10n_pe_vat_code":  {"type": "string"}
                 },
             },
             "vat" : {"type": "string", "required": True, "empty": False},
-            "street": {"type": "string", "required": False, "empty": False},
-            "street2": {"type": "string", "nullable": False},
-            "zip": {"type": "string", "required": False, "empty": False},
-            "city": {"type": "string", "required": False, "empty": False},
-            "phone": {"type": "string", "nullable": True, "empty": False},
+            "street": {"type": "string", "required": False, "empty": True},
+            "email": {"type": "string", "required": False, "empty": True},
+            "street2": {"type": "string", "nullable": True},
+            "zip": {"type": "string", "required": False, "empty": True},
+            "city": {"type": "string", "required": False, "empty": True},
+            "phone": {"type": "string", "nullable": False, "empty": True},
             "state": {
                 "type": "dict",
                 "schema": {
@@ -150,15 +170,15 @@ class PartnerService(Component):
                     "id": {
                         "type": "integer",
                         "coerce": to_int,
-                        "required": True,
-                        "nullable": False,
+                        "required": False,
+                        "nullable": True,
                     },
                     "name": {"type": "string"},
                 },
             },
-            "is_company": {"coerce": to_bool, "type": "boolean"},
-            "category_id" : {"type": "string", "required": False, "empty": False},
-            "parent_id" : {"type": "string", "required": False, "empty": False},
+            "is_company": {"coerce": to_bool, "type": "boolean","empty": True},
+            "category_id" : {"type": "string", "required": False, "empty": True},
+            "parent_id" : {"type": "string", "required": False, "empty": True},
         }
         return res
 
@@ -181,17 +201,19 @@ class PartnerService(Component):
     def _to_json(self, partner):
         res = {
             "id": partner.id,
+            "company_type": partner.company_type,
             "vat": partner.vat,
             "name": partner.name,
-            "street": partner.street,
+            "street": partner.street or "",
             "street2": partner.street2 or "",
-            #"zip": partner.zip,
-            "city": partner.city,
-            "phone": partner.city,
+            "zip": partner.zip or "",
+            "city": partner.city or "",
+            "phone": partner.phone or "",
         }
         if partner.l10n_latam_identification_type_id:
             res["l10n_latam_identification_type"] = {
-                "id": partner.l10n_latam_identification_type_id.l10n_pe_vat_code,
+                "id": partner.l10n_latam_identification_type_id.id,
+                "l10n_pe_vat_code": partner.l10n_latam_identification_type_id.l10n_pe_vat_code,
                 "name": partner.l10n_latam_identification_type_id.name,
             }
         if partner.country_id:

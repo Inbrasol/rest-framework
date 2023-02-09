@@ -11,3 +11,4 @@ class LatamIdentificationType(Datamodel):
 
     id = fields.Integer(required=True, allow_none=False)
     name = fields.String(required=True, allow_none=False)
+    l10n_pe_vat_code = fields.String(required=False, allow_none=False)
