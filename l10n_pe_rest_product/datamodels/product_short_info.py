@@ -7,7 +7,7 @@ from odoo.addons.datamodel.core import Datamodel
 
 
 class PartnerShortInfo(Datamodel):
-    _name = "l10n_pe.partner.short.info"
+    _name = "product.short.info"
 
     id = fields.Integer(required=True, allow_none=False)
     name = fields.String(required=True, allow_none=False)

@@ -39,7 +39,18 @@ class PartnerService(Component):
                 print("------------------create---------------------------")
                 create_params = self._prepare_params(prepare_params_doc_type)
                 print(create_params)
-                partner = self.env["res.partner"].create(self._prepare_params(create_params))
+                if params.get("parent_id") and params.get("company_type")=="person":
+                    print("dataaaaaaaaaaaaaaaa")
+                    parent_search = self._get_by_document_type(params.get("parent_id").get("l10n_pe_vat_code"),params.get("parent_id").get("vat"))
+                    print("dataaaaaaaaaaaaaaaa3333")
+                    create_params.pop("parent_id")
+                    print(create_params)
+                    create_params["parent_id"] = parent_search.id
+                    print("----parent-id")
+                    print(create_params)
+                    partner = self.env["res.partner"].create(self._prepare_params(create_params))
+                else:
+                    partner = self.env["res.partner"].create(self._prepare_params(create_params))
                 return self._to_json(partner)
  
     """@restapi.method(
@@ -150,6 +161,14 @@ class PartnerService(Component):
                     "l10n_pe_vat_code":  {"type": "string"}
                 },
             },
+            "parent_id":
+            {
+                "type": "dict",
+                "schema": {
+                    "l10n_pe_vat_code":  {"type": "string"},
+                    "vat":  {"type": "string"},
+                },
+            },
             "vat" : {"type": "string", "required": True, "empty": False},
             "street": {"type": "string", "required": False, "empty": True},
             "email": {"type": "string", "required": False, "empty": True},
@@ -178,7 +197,6 @@ class PartnerService(Component):
             },
             "is_company": {"coerce": to_bool, "type": "boolean","empty": True},
             "category_id" : {"type": "string", "required": False, "empty": True},
-            "parent_id" : {"type": "string", "required": False, "empty": True},
         }
         return res
 

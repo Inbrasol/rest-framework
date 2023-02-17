@@ -12,6 +12,7 @@ class PartnerInfo(Datamodel):
     _inherit = "l10n_pe.partner.short.info"
     company_type = fields.String(required=False, allow_none=False)
     l10n_latam_identification_type_id = fields.String(required=False, allow_none=False)
+    l10n_pe_vat_code = fields.String(required=False, allow_none=False)
     vat = fields.String(required=False, allow_none=False)
     email = fields.String(required=False, allow_none=False)
     street = fields.String(required=False, allow_none=False)
@@ -25,4 +26,5 @@ class PartnerInfo(Datamodel):
     state = NestedModel("l10n_pe.state.info")
     country = NestedModel("l10n_pe.country.info")
     l10n_latam_identification_type = NestedModel("l10n_latam.identification.type.info")
+    parent_id = NestedModel("parent.info")
     is_company = fields.Boolean(required=False, allow_none=False)

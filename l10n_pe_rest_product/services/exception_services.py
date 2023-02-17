@@ -20,7 +20,7 @@ class ExceptionService(Component):
     _inherit = "base.rest.service"
     _name = "exception.service"
     _usage = "exception"
-    _collection = "base.rest.demo.public.services"
+    _collection = "l10n_pe.product.rest.private.services"
     _description = """
         Exception Services
 
