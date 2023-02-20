@@ -9,6 +9,7 @@ from odoo.addons.datamodel.fields import NestedModel
 
 class SaleOrderInfo(Datamodel):
     _name = "sale.order.info"
+    name =  fields.String(required=False, allow_none=False)
     type_name =  fields.String(required=True, allow_none=False)
     l10n_pe_vat_code =  fields.String(required=True, allow_none=False)
     vat =  fields.String(required=True, allow_none=False)
@@ -16,4 +17,7 @@ class SaleOrderInfo(Datamodel):
     payment_term_id =  fields.String(required=False, allow_none=False)
     origin = fields.String(required=False, allow_none=False)
     currency_id = fields.String(required=True, allow_none=False)
-    lines =  fields.List(NestedModel("sale.order.line.info")) 
+    lines =  fields.List(NestedModel("sale.order.line.info"))
+    state = fields.String(required=False, allow_none=False)
+    invoice_status = fields.String(required=False, allow_none=False)
+    invoice_ids = fields.List(NestedModel("invoice.info"))

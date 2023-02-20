@@ -6,7 +6,7 @@ from marshmallow import fields
 from odoo.addons.datamodel.core import Datamodel
 
 
-class StateInfo(Datamodel):
+class TaxesInfo(Datamodel):
     _name = "taxes.info"
 
     id = fields.Integer(required=True, allow_none=True)

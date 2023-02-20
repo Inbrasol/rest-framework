@@ -4,6 +4,14 @@ from odoo.addons.base_rest.components.service import to_bool, to_int
 from odoo.addons.component.core import Component
 from odoo.addons.base_rest import restapi
 from odoo.addons.base_rest_datamodel.restapi import Datamodel
+from odoo import _
+from odoo.exceptions import (
+    AccessDenied,
+    AccessError,
+    MissingError,
+    UserError,
+    ValidationError,
+)
 
 class PartnerService(Component):
     _inherit = "base.rest.service"
@@ -22,6 +30,38 @@ class PartnerService(Component):
         """
         return self._to_json(self._get(_id))
 
+    @restapi.method(
+        [(["/",], "GET")],
+        input_param=Datamodel("l10n_pe.partner.search.param"),
+        output_param=Datamodel("l10n_pe.partner.info"),
+        auth="public",
+    )
+    def get(self,partner_input):
+        try:
+            partner = self._get_by_document_type(partner_input.l10n_latam_identification_type_id,partner_input.vat)
+            PartnerInfo = self.env.datamodels["l10n_pe.partner.info"]
+            partner_info = PartnerInfo(partial=True)
+            partner_info.id = partner.id
+            partner_info.name = partner.name
+            partner_info.street = partner.street
+            partner_info.street2 = partner.street2
+            partner_info.zip_code = partner.zip
+            partner_info.city = partner.city
+            partner_info.phone = partner.phone
+            if partner.country_id:
+                partner_info.country = self.env.datamodels["country.info"](
+                    id=partner.country_id.id, name=partner.country_id.name
+                )
+            if partner.state_id:
+                partner_info.state = self.env.datamodels["state.info"](
+                    id=partner.state_id.id, name=partner.state_id.name
+                )
+            partner_info.is_company = partner.is_company
+            return partner_info
+        except:
+            raise ValidationError(_("ValidationError message"))
+
+            
     # pylint:disable=method-required-super
     def create(self, **params):
         if params.get("vat"):

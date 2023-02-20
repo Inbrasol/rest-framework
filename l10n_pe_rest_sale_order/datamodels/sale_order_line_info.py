@@ -4,12 +4,12 @@
 from marshmallow import fields
 
 from odoo.addons.datamodel.core import Datamodel
+from odoo.addons.datamodel.fields import NestedModel
 
-
-class CountryInfo(Datamodel):
+class SaleOrderLineInfo(Datamodel):
     _name = "sale.order.line.info"
     
-    id = fields.Integer(required=True, allow_none=False)
+    id = fields.Integer(required=False, allow_none=False)
     name = fields.String(required=True, allow_none=False)
     product_id = fields.String(required=True, allow_none=False)
     product_uom = fields.String(required=True, allow_none=False)
