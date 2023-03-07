@@ -15,35 +15,36 @@ class ProductApiService(Component):
     """
     @restapi.method(
         [(["/stockpicking"], "POST")],
-        input_param=Datamodel("stock.quant.search.param"),
+        input_param=Datamodel("stock.picking.search.param"),
         output_param=Datamodel("stock.quant.list.info"),
         auth="public",
     )
-    def get_stockquant(self, stock_quant_input):
+    def create_stockpicking(self, stock_picking_input):
         warehouse_names = []
-        for warehouse in stock_quant_input.warehouse :
+        for warehouse in stock_picking_input.warehouse :
             warehouse_names.append(warehouse.name)
         
         warehouse_ids = []
         for warehouse in  self.env["stock.warehouse"].search([('name','in',warehouse_names)]):
             warehouse_ids.append(warehouse.id)
        
-        location_ids = []
-        for location in self.env["stock.location"].search([('warehouse_id','in',warehouse_ids)]):
-            location_ids.append(location.id)
+        #location_ids = []
+        #for location in self.env["stock.location"].search([('warehouse_id','in',warehouse_ids)]):
+        #    location_ids.append(location.id)
         
-        stock_quants = self.env["stock.quant"].search([('location_id','in',location_ids)])
+        #stock_quants = self.env["stock.quant"].search([('location_id','in',location_ids)])
 
-        stockQuantInfo = self.env.datamodels["stock.quant.list.info"]
+        stockQuantInfo = self.env.datamodels["stock.picking.list.info"]
         res = stockQuantInfo(partial=True)
-        res.count = len(stock_quants)   
+        #res.count = len(stock_quants)   
         res_stockquant = []
+        """
         for stock_quant_item in stock_quants :
             stockquantItemInfo = self.env.datamodels["stock.quant.info"]
             stockquant = stockquantItemInfo(partial=True)
             stockquant.product_id = stock_quant_item.product_id
-            stockquant.product_uom_id = stock_quant_item.product_uom_id.code
-            stockquant.product_categ_id = stock_quant_item.product_categ_id.name
+            stockquant.product_uom_id = stock_quant_item.product_uom_id.code if stock_quant_item.product_uom_id else ""
+            stockquant.product_categ_id = stock_quant_item.product_categ_id.name if stock_quant_item.product_categ_id else ""
             stockquant.available_quantity = stock_quant_item.available_quantity
             stockquant.reserved_quantity = stock_quant_item.reserved_quantity
             stockquant.in_date = stock_quant_item.in_date
@@ -51,4 +52,5 @@ class ProductApiService(Component):
             stockquant.quantity = stock_quant_item.quantity
             res_stockquant.append(stockquant)
         res.stock_quants = res_stockquant
+        """
         return res

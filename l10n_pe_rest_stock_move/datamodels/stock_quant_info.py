@@ -7,9 +7,9 @@ from odoo.addons.datamodel.fields import NestedModel
 class StockQuant(Datamodel):
     _name = "stock.quant.info"
 
-    id = fields.Integer(required=True, allow_none=True)
-    name = fields.String(required=True, allow_none=True)
-    available_quantity = fields.Float(required=True, allow_none=True)
+    id = fields.Integer(required=False, allow_none=True)
+    name = fields.String(required=False, allow_none=True)
+    available_quantity = fields.Float(required=False, allow_none=True)
     reserved_quantity = fields.Float(required=False, allow_none=True)
     in_date = fields.DateTime(required=False, allow_none=True)
     location_id = fields.String(required=False, allow_none=True)
@@ -17,6 +17,7 @@ class StockQuant(Datamodel):
     on_hand = fields.Boolean(required=False, allow_none=True)
     product_categ_id = fields.String(required=False, allow_none=True)
     product_id = fields.String(required=False, allow_none=True)
+    product_name = fields.String(required=False, allow_none=True)
     product_uom_id = fields.String(required=False, allow_none=True)
     quantity = fields.Float(required=False, allow_none=True)
     tracking = fields.String(required=False, allow_none=True)

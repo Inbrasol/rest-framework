@@ -14,4 +14,3 @@ class BaseRestDemoPrivateApiController(main.RestController):
     _root_path = "/stock_rest_api/private/"
     _collection_name = "l10n_pe.stock.rest.private.services"
     _default_auth = "user"
-

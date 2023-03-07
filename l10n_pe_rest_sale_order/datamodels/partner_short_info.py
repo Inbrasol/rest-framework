@@ -6,8 +6,8 @@ from marshmallow import fields
 from odoo.addons.datamodel.core import Datamodel
 
 
-class PartnerShortInfo(Datamodel):
-    _name = "partner.short.info"
+class PartnerSearchParam(Datamodel):
+    _name = "partner.search.param"
 
-    id = fields.Integer(required=True, allow_none=False)
-    name = fields.String(required=True, allow_none=False)
+    id = fields.Integer(required=False, allow_none=False)
+    name = fields.String(required=False, allow_none=False)
