@@ -6,16 +6,14 @@ from marshmallow import fields
 from odoo.addons.datamodel.core import Datamodel
 from odoo.addons.datamodel.fields import NestedModel
 
-class SaleOrderLineInfo(Datamodel):
-    _name = "sale.order.line.info"
-    
-    id = fields.Integer(required=False, allow_none=False)
-    name = fields.String(required=True, allow_none=False)
-    product_id = fields.String(required=True, allow_none=False)
-    product_uom = fields.String(required=True, allow_none=False)
-    product_uom_qty = fields.Float(required=True, allow_none=False)
-    price_unit = fields.Float(required=True, allow_none=False)
-    analytic_line_ids = fields.List(NestedModel("analytic.info")) 
-    analytic_tag_ids = fields.List(NestedModel("analytic.info")) 
-    analytic_dimension_ids = fields.List(NestedModel("analytic.info")) 
-    tax_id = fields.List(NestedModel("taxes.info")) 
+class SaleSearchParam(Datamodel):
+    _name = "sale.order.search.param"
+    name = fields.String(required=False, allow_none=False)
+    type_name =  fields.String(required=True, allow_none=False)
+    l10n_pe_vat_code =  fields.String(required=True, allow_none=False)
+    vat =  fields.String(required=True, allow_none=False)
+    date_order =  fields.String(required=True, allow_none=False)
+    payment_term_id =  fields.String(required=False, allow_none=False)
+    origin = fields.String(required=False, allow_none=False)
+    currency_id = fields.String(required=True, allow_none=False)
+    lines =  fields.List(NestedModel("sale.order.line.info")) 
