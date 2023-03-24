@@ -80,13 +80,33 @@ class ProductApiService(Component):
         #location_id = self.env["stock.location"].search(
         #    [('warehouse_id', 'in', warehouse_ids), ("usage", "=", "internal")], limit=1)
         create_params = {
-            "partner_id": partner_search.id,
+            #"partner_id": partner_search.id,
             # date_order": product_category_param.date_order,
             "location_id": stock_picking_type.default_location_src_id.id,
             "location_dest_id": stock_picking_type.default_location_dest_id.id,
             "origin": stock_picking_input.origin,
             "picking_type_id": stock_picking_type.id
         }
+        
+        # LINES
+        picking_lines = []
+        for picking_line in stock_picking_input.products:
+            product = self.env["product.product"].search([('default_code','=',picking_line.product_id)],limit=1)
+            product_uom = self.env["uom.uom"].search([('name','=',picking_line.product_uom)],limit=1)
+            picking_lines.append((0, 0,{
+                "product_id" : product.id,
+                #"currency_id": currrency.id,
+                "name": picking_line.name,
+                "product_uom": product_uom.id,
+                "product_uom_qty": picking_line.product_uom_qty,
+                "location_id": stock_picking_type.default_location_src_id.id,
+                "location_dest_id": stock_picking_type.default_location_dest_id.id,
+                #"price_unit":sale_line.price_unit,
+                #"tax_id":tax_id
+                #"analytic_line_ids":analytic_line_ids,
+                #"analytic_tag_ids":analytic_tag_ids
+            }))
+        create_params["move_lines"] = picking_lines
         print("create_params----------------------")
         print(create_params)
         stock_picking = self.env["stock.picking"].create(create_params)
@@ -97,10 +117,10 @@ class ProductApiService(Component):
         res.origin = stock_picking.origin
         res.l10n_pe_vat_code = stock_picking.partner_id.l10n_latam_identification_type_id.l10n_pe_vat_code
         res.vat = stock_picking.partner_id.vat
-
-        #res_stockPicking = []
+      
         """
-        for stock_Picking_item in stock_Pickings :
+        #res_stockPicking = []
+        for stock_Picking_item in stock_picking_input.products :
             stockPickingItemInfo = self.env.datamodels["stock.Picking.info"]
             stockPicking = stockPickingItemInfo(partial=True)
             stockPicking.product_id = stock_Picking_item.product_id
@@ -113,9 +133,44 @@ class ProductApiService(Component):
             stockPicking.Pickingity = stock_Picking_item.Pickingity
             res_stockPicking.append(stockPicking)
         res.stock_Pickings = res_stockPicking
+        return res
         """
         return res
 
+    @restapi.method(
+        [(["/stockpicking/update"], "POST")],
+        input_param=Datamodel("stock.picking.info"),
+        output_param=Datamodel("stock.picking.info"),
+        auth="public",
+    )
+    def update_stockpicking(self, stock_picking_input):
+        stock_picking = self.env["stock.picking"].search([('name','=',stock_picking_input.name)],limit=1)
+        picking_lines = []
+        
+        """
+        for picking_line in stock_picking.move_lines:
+             current_picking_line = picking_line
+             current_picking_line.qty_done = picking_line.product_uom_qty
+             picking_lines.append((0, 0,picking_line))
+        update_params = {
+            "id": stock_picking.id,
+            "state": stock_picking_input.state,
+            "move_lines": picking_lines
+        }        
+        res_stock_picking = self.env["stock.picking"].browse(stock_picking.id)
+        res_stock_picking.write(update_params)
+        """
+        #stock_picking.action_confirm()
+        stock_picking.action_assign()
+        stock_picking.action_set_quantities_to_reservation()
+        stock_picking.button_validate()
+        
+        stockPickingInfo = self.env.datamodels["stock.picking.info"]
+        res = stockPickingInfo(partial=True)
+        res.name = stock_picking.name
+        res.state = stock_picking.state
+        return res
+        
     def _get_by_document_type(self, _l10n_pe_vat_code, _vat):
         domain_partner = []
         domain_partner.append(("vat", "=", _vat))

@@ -179,9 +179,9 @@ class ProductApiService(Component):
         #lines
         sale_lines = []
         for sale_line in product_category_param.lines:
-            product = self.env["product.product"].search([('name','=',sale_line.name)],limit=1)
+            product = self.env["product.product"].search([('default_code','=',sale_line.product_id)],limit=1)
             #product =  self.env["product.template"].search([('default_code','in', sale_line.product_id)],limit=1)
-            product_uom = self.env["uom.uom"].search([('name','in',sale_line.product_uom)],limit=1)
+            product_uom = self.env["uom.uom"].search([('name','=',sale_line.product_uom)],limit=1)
             print("---product_uom---")
             print(product_uom)
             """
@@ -222,7 +222,7 @@ class ProductApiService(Component):
                 "product_id" : product.id,
                 "currency_id": currrency.id,
                 "name": sale_line.name,
-                "product_uom": 5,
+                "product_uom": product_uom.id,
                 "product_uom_qty": sale_line.product_uom_qty,
                 "price_unit":sale_line.price_unit,
                 #"tax_id":tax_id
