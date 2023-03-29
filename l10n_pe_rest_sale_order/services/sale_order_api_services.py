@@ -74,6 +74,9 @@ class ProductApiService(Component):
         if product_category_param.date_order:
             update_params["date_order"] = product_category_param.date_order
         
+        if product_category_param.state:
+            update_params["state"] = product_category_param.state
+            
         print("--------create_params---------")
         print(update_params)
         #lines

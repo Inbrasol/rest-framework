@@ -16,4 +16,5 @@ class SaleSearchParam(Datamodel):
     payment_term_id =  fields.String(required=False, allow_none=False)
     origin = fields.String(required=False, allow_none=False)
     currency_id = fields.String(required=True, allow_none=False)
-    lines =  fields.List(NestedModel("sale.order.line.info")) 
+    lines =  fields.List(NestedModel("sale.order.line.info"))
+    state = fields.String(required=False, allow_none=False)
