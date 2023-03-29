@@ -89,7 +89,7 @@ class ProductApiService(Component):
             sale_order_line_set.unlink()
             
             for sale_line in product_category_param.lines:
-                product = self.env["product.product"].search([('name','=',sale_line.name)],limit=1)
+                product = self.env["product.product"].search([('default_code','=',sale_line.product_id)],limit=1)
                 #product =  self.env["product.template"].search([('default_code','in', sale_line.product_id)],limit=1)
                 uom_id = self.env["uom.uom"].search([('name','=', sale_line.product_uom)],limit=1)
                 print("---product_uom---")
@@ -116,6 +116,7 @@ class ProductApiService(Component):
                 tax_id = self.env["account.tax"].search([('name', 'in' ,tax_name)])
             
                 sale_lines.append((0, 0,{
+                    "order_id":sale_order.id,
                     "product_id" : product.id,
                     "currency_id": currrency.id,
                     "name": sale_line.name,
