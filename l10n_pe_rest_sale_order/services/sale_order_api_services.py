@@ -94,20 +94,22 @@ class ProductApiService(Component):
                 uom_id = self.env["uom.uom"].search([('name','=', sale_line.product_uom)],limit=1)
                 print("---product_uom---")
                 print(uom_id)
+               
+                analytic_lines = []
+                if sale_line.analytic_line_ids:
+                    for analytic_line in sale_line.analytic_line_ids:
+                        analytic_lines.append(analytic_line.name)
+
+                analytic_line_ids: self.env["account.analytic.account"].search([('name', 'in',analytic_lines)])
+                print("nalaitics")
+                print(analytic_line_ids)
                 """
-            analytic_line = []
-            if sale_line.analytic_line_ids:
-                for analytic_line in sale_line.analytic_line_ids:
-                    analytic_line.append(analytic_line.id)
-
-            analytic_line_ids: self.env["​account.analytic.account"].search([('code', 'in',analytic_line)])
-
-            tag_line = []
-            if sale_line.analytic_tag_ids:
-                for tag_line in sale_line.analytic_tag_ids:
+                tag_line = []
+                if sale_line.analytic_tag_ids:
+                    for tag_line in sale_line.analytic_tag_ids:
                     tag_line.append(tag_line.name)
-            analytic_tag_ids: self.env["​account.analytic.tag"].search([('name', 'in' ,tag_line)])
-            """
+                analytic_tag_ids: self.env["account.analytic.tag"].search([('name', 'in' ,tag_line)])
+                """
                 #taxes
                 tax_name = []
                 if sale_line.tax_id:
@@ -123,7 +125,7 @@ class ProductApiService(Component):
                     "product_uom": uom_id.id,
                     "product_uom_qty": sale_line.product_uom_qty,
                     "price_unit":sale_line.price_unit,
-                    #"tax_id":tax_id
+                    #"tax_id":tax_id,
                     #"analytic_line_ids":analytic_line_ids,
                     #"analytic_tag_ids":analytic_tag_ids
                 }))
@@ -188,19 +190,18 @@ class ProductApiService(Component):
             product_uom = self.env["uom.uom"].search([('name','=',sale_line.product_uom)],limit=1)
             print("---product_uom---")
             print(product_uom)
-            """
-            analytic_line = []
+            analytic_lines = []
             if sale_line.analytic_line_ids:
                 for analytic_line in sale_line.analytic_line_ids:
-                    analytic_line.append(analytic_line.id)
-
-            analytic_line_ids: self.env["​account.analytic.account"].search([('code', 'in',analytic_line)])
-
+                    analytic_lines.append(analytic_line.name)
+    
+            analytic_line_ids: self.env["account.analytic.account"].search([('name', 'in',analytic_lines)])
+            """
             tag_line = []
             if sale_line.analytic_tag_ids:
                 for tag_line in sale_line.analytic_tag_ids:
                     tag_line.append(tag_line.name)
-            analytic_tag_ids: self.env["​account.analytic.tag"].search([('name', 'in' ,tag_line)])
+            analytic_tag_ids: self.env["account.analytic.tag"].search([('name', 'in' ,tag_line)])
             """
             #taxes
             tax_name = []
@@ -230,7 +231,7 @@ class ProductApiService(Component):
                 "product_uom_qty": sale_line.product_uom_qty,
                 "price_unit":sale_line.price_unit,
                 #"tax_id":tax_id
-                #"analytic_line_ids":analytic_line_ids,
+                #"analytic_line_ids":[(4,analytic_line_ids[0].id)],
                 #"analytic_tag_ids":analytic_tag_ids
             }))
         create_params["order_line"] = sale_lines
