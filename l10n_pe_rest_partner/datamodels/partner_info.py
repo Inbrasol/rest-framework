@@ -28,3 +28,4 @@ class PartnerInfo(Datamodel):
     l10n_latam_identification_type = NestedModel("l10n_latam.identification.type.info")
     parent_id = NestedModel("parent.info")
     is_company = fields.Boolean(required=False, allow_none=False)
+    transaction_status = fields.String(required=False, allow_none=False)

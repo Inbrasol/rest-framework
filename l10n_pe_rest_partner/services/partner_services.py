@@ -91,7 +91,7 @@ class PartnerService(Component):
                     partner = self.env["res.partner"].create(self._prepare_params(create_params))
                 else:
                     partner = self.env["res.partner"].create(self._prepare_params(create_params))
-                return self._to_json(partner)
+                return self._to_json(partner, "new")
  
     """@restapi.method(
         [(["/", "/update"], "GET")],
@@ -107,7 +107,20 @@ class PartnerService(Component):
         identification_type = self._get_l10n_latam_identification(params.get("l10n_latam_identification_type").get("l10n_pe_vat_code"))
         partner = self._get_by_document_type(params.get("l10n_latam_identification_type").get("l10n_pe_vat_code"),params.get("vat"))
         prepare_params_doc_type = self._prepare_document_type_params(params,identification_type)
+
+        if identification_type.l10n_pe_vat_code == "1":
+            prepare_params_doc_type.pop("name", None)
+            prepare_params_doc_type.pop("vat", None)
+            prepare_params_doc_type.pop("l10n_latam_identification_type_id", None)
+        elif identification_type.l10n_pe_vat_code == "6":
+            prepare_params_doc_type.pop("name", None)
+            prepare_params_doc_type.pop("vat", None)
+            prepare_params_doc_type.pop("l10n_latam_identification_type_id", None)
+            prepare_params_doc_type.pop("street", None)
+            prepare_params_doc_type.pop("state", None)
+
         partner.write(self._prepare_params(prepare_params_doc_type))
+
         return self._to_json(partner)
 
     def archive(self, _id, **params):
@@ -237,6 +250,7 @@ class PartnerService(Component):
             },
             "is_company": {"coerce": to_bool, "type": "boolean","empty": True},
             "category_id" : {"type": "string", "required": False, "empty": True},
+            "transaction_status" : {"type": "string", "required": False, "empty": True},
         }
         return res
 
@@ -256,7 +270,7 @@ class PartnerService(Component):
     def _validator_archive(self):
         return {}
 
-    def _to_json(self, partner):
+    def _to_json(self, partner, transaction_status="exists"):
         res = {
             "id": partner.id,
             "company_type": partner.company_type,
@@ -267,6 +281,7 @@ class PartnerService(Component):
             "zip": partner.zip or "",
             "city": partner.city or "",
             "phone": partner.phone or "",
+            "transaction_status": transaction_status,
         }
         if partner.l10n_latam_identification_type_id:
             res["l10n_latam_identification_type"] = {
