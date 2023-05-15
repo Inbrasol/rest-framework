@@ -76,7 +76,8 @@ class ProductApiService(Component):
         
         if product_category_param.state:
             update_params["state"] = product_category_param.state
-            
+
+           
         print("--------create_params---------")
         print(update_params)
         #lines
@@ -100,9 +101,9 @@ class ProductApiService(Component):
                     for analytic_line in sale_line.analytic_line_ids:
                         analytic_lines.append(analytic_line.name)
 
-                analytic_line_ids: self.env["account.analytic.account"].search([('name', 'in',analytic_lines)])
-                print("nalaitics")
-                print(analytic_line_ids)
+                analytic_account_id  = self.env["account.analytic.account"].search([('name','in',analytic_lines),("active","=",True)],limit=1)
+                #print("nalaitics")
+                #print(analytic_line_ids)
                 """
                 tag_line = []
                 if sale_line.analytic_tag_ids:
@@ -115,7 +116,7 @@ class ProductApiService(Component):
                 if sale_line.tax_id:
                     for tax in sale_line.tax_id:
                         tax_name.append(tax.name)
-                tax_id = self.env["account.tax"].search([('name', 'in' ,tax_name)])
+                tax_id = self.env["account.tax"].search([('name', 'in' ,tax_name),("type_tax_use",'=','sale')])
             
                 sale_lines.append((0, 0,{
                     "order_id":sale_order.id,
@@ -125,8 +126,8 @@ class ProductApiService(Component):
                     "product_uom": uom_id.id,
                     "product_uom_qty": sale_line.product_uom_qty,
                     "price_unit":sale_line.price_unit,
-                    #"tax_id":tax_id,
-                    #"analytic_line_ids":analytic_line_ids,
+                    "tax_id":tax_id.ids,
+                    "analytic_account_id":analytic_account_id.id,
                     #"analytic_tag_ids":analytic_tag_ids
                 }))
         
@@ -172,21 +173,24 @@ class ProductApiService(Component):
         currrency = self.env["res.currency"].search([('name', '=',product_category_param.currency_id)],limit=1)
         payment_term =  self.env["account.payment.term"].search([('name', '=',product_category_param.payment_term_id)],limit=1)
         product_pricelist =  self.env["product.pricelist"].search([('currency_id', '=',currrency.id)],limit=1)
+        type_id = self.env["sale.order.type"].search([('code', '=',product_category_param.type_name)],limit=1)
         create_params = {
             "partner_id": partner_search.id,
             "date_order": product_category_param.date_order,
             "origin":product_category_param.origin,
             "currency_id": currrency.id,
             "payment_term_id":payment_term.id,
-            "pricelist_id" : product_pricelist.id
+            "pricelist_id" : product_pricelist.id,
+            "type_id": type_id.id,
+            "delivery_block_id" : type_id.delivery_block_id.id
         }
         print("--------create_params---------")
         print(create_params)
+        #
         #lines
         sale_lines = []
         for sale_line in product_category_param.lines:
             product = self.env["product.product"].search([('default_code','=',sale_line.product_id)],limit=1)
-            #product =  self.env["product.template"].search([('default_code','in', sale_line.product_id)],limit=1)
             product_uom = self.env["uom.uom"].search([('name','=',sale_line.product_uom)],limit=1)
             print("---product_uom---")
             print(product_uom)
@@ -194,8 +198,8 @@ class ProductApiService(Component):
             if sale_line.analytic_line_ids:
                 for analytic_line in sale_line.analytic_line_ids:
                     analytic_lines.append(analytic_line.name)
-    
-            analytic_line_ids: self.env["account.analytic.account"].search([('name', 'in',analytic_lines)])
+            analytic_account_id  = self.env["account.analytic.account"].search([('name','in',analytic_lines),("active","=",True)],limit=1)
+            #print(self.env["account.analytic.account"].search([('name','in',analytic_lines),("active","=",True)]))
             """
             tag_line = []
             if sale_line.analytic_tag_ids:
@@ -205,24 +209,12 @@ class ProductApiService(Component):
             """
             #taxes
             tax_name = []
-            if sale_line.analytic_tag_ids:
+            if sale_line.tax_id:
                 for tax in sale_line.tax_id:
+                    print("TAXT_REQUEST")
+                    print(tax)
                     tax_name.append(tax.name)
-            tax_id = self.env["account.tax"].search([('name', 'in' ,tax_name)])
-
-            """
-            sale_line = {
-                "product_id" : product.id,
-                "currency_id": currrency.id,
-                "name": sale_line.name,
-                "product_uom": 1,
-                "product_uom_qty": sale_line.product_uom_qty,
-                "price_unit":sale_line.price_unit,
-                #"tax_id":tax_id
-                #"analytic_line_ids":analytic_line_ids,
-                #"analytic_tag_ids":analytic_tag_ids
-            }
-            """
+            tax_id = self.env["account.tax"].search([('name', 'in' ,tax_name),("type_tax_use",'=','sale')])
             sale_lines.append((0, 0,{
                 "product_id" : product.id,
                 "currency_id": currrency.id,
@@ -230,12 +222,11 @@ class ProductApiService(Component):
                 "product_uom": product_uom.id,
                 "product_uom_qty": sale_line.product_uom_qty,
                 "price_unit":sale_line.price_unit,
-                #"tax_id":tax_id
-                #"analytic_line_ids":[(4,analytic_line_ids[0].id)],
+                "tax_id": tax_id.ids,
+                "analytic_account_id":analytic_account_id.id,
                 #"analytic_tag_ids":analytic_tag_ids
             }))
         create_params["order_line"] = sale_lines
-
         print("---------------create_params------")
         print(create_params)
         sale_order = self.env["sale.order"].create(create_params)
@@ -253,7 +244,6 @@ class ProductApiService(Component):
         res.state = sale_order.state
         res.invoice_status = sale_order.invoice_status
         return res
-
 
     def _get_by_document_type(self,_l10n_pe_vat_code,_vat):
         domain_partner = []
