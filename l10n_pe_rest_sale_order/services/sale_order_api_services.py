@@ -3,7 +3,7 @@
 from odoo.addons.base_rest import restapi
 from odoo.addons.base_rest_datamodel.restapi import Datamodel
 from odoo.addons.component.core import Component
-
+from tabulate import tabulate
 class ProductApiService(Component):
     _inherit = "base.rest.service"
     _name = "sale.order.new_api.service"
