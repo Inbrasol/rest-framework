@@ -11,3 +11,4 @@ parse-accept-language
 pydantic
 pyquerystring
 typing-extensions
+tabulate
