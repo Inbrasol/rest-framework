@@ -14,7 +14,7 @@ class PartnerNewApiService(Component):
         Partner New API Services
         Services developed with the new api provided by base_rest
     """
-
+    _log_calls_in_db = True
     @restapi.method(
         [(["/<int:l10n_latam_identification_type_id>/get", "/<int:l10n_latam_identification_type_id>"], "GET")],
         output_param=Datamodel("l10n_pe.partner.info"),

@@ -16,7 +16,7 @@ class productService(Component):
         Access to the product services is only allowed to authenticated users.
         If you are not authenticated go to <a href='/web/login'>Login</a>
     """
-
+    _log_calls_in_db = True
     def get(self, _id):
         """
         Get product's informations

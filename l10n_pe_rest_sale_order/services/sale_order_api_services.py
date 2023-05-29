@@ -13,6 +13,7 @@ class ProductApiService(Component):
         product New API Services
         Services developed with the new api provided by base_rest
     """
+    _log_calls_in_db = True
     @restapi.method(
         [(["/get"], "GET")],
         input_param=Datamodel("sale.order.get.param"),
@@ -81,57 +82,59 @@ class ProductApiService(Component):
         print("--------create_params---------")
         print(update_params)
         #lines
-        sale_lines = []
-        if product_category_param.lines:
-            sale_order_line_ids = []
-            for order_line in sale_order.order_line:
-                sale_order_line_ids.append(order_line.id)
-            sale_order_line_set = self.env['sale.order.line'].search([('id', 'in',sale_order_line_ids)])
-            sale_order_line_set.unlink()
-            
-            for sale_line in product_category_param.lines:
-                product = self.env["product.product"].search([('default_code','=',sale_line.product_id)],limit=1)
-                #product =  self.env["product.template"].search([('default_code','in', sale_line.product_id)],limit=1)
-                uom_id = self.env["uom.uom"].search([('name','=', sale_line.product_uom)],limit=1)
-                print("---product_uom---")
-                print(uom_id)
-               
-                analytic_lines = []
-                if sale_line.analytic_line_ids:
-                    for analytic_line in sale_line.analytic_line_ids:
-                        analytic_lines.append(analytic_line.name)
+        type_id = self.env["sale.order.type"].search([('code', '=',product_category_param.type_name)],limit=1)
+        if type_id.sale_line_operation and type_id.sale_line_operation not in ('notcreate_to_note','notcreate'):
+            sale_lines = []
+            if product_category_param.lines:
+                sale_order_line_ids = []
+                for order_line in sale_order.order_line:
+                    sale_order_line_ids.append(order_line.id)
+                sale_order_line_set = self.env['sale.order.line'].search([('id', 'in',sale_order_line_ids)])
+                sale_order_line_set.unlink()
 
-                analytic_account_id  = self.env["account.analytic.account"].search([('name','in',analytic_lines),("active","=",True)],limit=1)
-                #print("nalaitics")
-                #print(analytic_line_ids)
-                """
-                tag_line = []
-                if sale_line.analytic_tag_ids:
-                    for tag_line in sale_line.analytic_tag_ids:
-                    tag_line.append(tag_line.name)
-                analytic_tag_ids: self.env["account.analytic.tag"].search([('name', 'in' ,tag_line)])
-                """
-                #taxes
-                tax_name = []
-                if sale_line.tax_id:
-                    for tax in sale_line.tax_id:
-                        tax_name.append(tax.name)
-                tax_id = self.env["account.tax"].search([('name', 'in' ,tax_name),("type_tax_use",'=','sale')])
-            
-                sale_lines.append((0, 0,{
-                    "order_id":sale_order.id,
-                    "product_id" : product.id,
-                    "currency_id": currrency.id,
-                    "name": sale_line.name,
-                    "product_uom": uom_id.id,
-                    "product_uom_qty": sale_line.product_uom_qty,
-                    "price_unit":sale_line.price_unit,
-                    "tax_id":tax_id.ids,
-                    "analytic_account_id":analytic_account_id.id,
-                    #"analytic_tag_ids":analytic_tag_ids
-                }))
-        
-        update_params["order_line"] = sale_lines
+                for sale_line in product_category_param.lines:
+                    product = self.env["product.product"].search([('default_code','=',sale_line.product_id)],limit=1)
+                    #product =  self.env["product.template"].search([('default_code','in', sale_line.product_id)],limit=1)
+                    uom_id = self.env["uom.uom"].search([('name','=', sale_line.product_uom)],limit=1)
+                    print("---product_uom---")
+                    print(uom_id)
+
+                    analytic_lines = []
+                    if sale_line.analytic_line_ids:
+                        for analytic_line in sale_line.analytic_line_ids:
+                            analytic_lines.append(analytic_line.name)
+
+                    analytic_account_id  = self.env["account.analytic.account"].search([('name','in',analytic_lines),("active","=",True)],limit=1)
+                    #print("nalaitics")
+                    #print(analytic_line_ids)
+                    """
+                    tag_line = []
+                    if sale_line.analytic_tag_ids:
+                        for tag_line in sale_line.analytic_tag_ids:
+                        tag_line.append(tag_line.name)
+                    analytic_tag_ids: self.env["account.analytic.tag"].search([('name', 'in' ,tag_line)])
+                    """
+                    #taxes
+                    tax_name = []
+                    if sale_line.tax_id:
+                        for tax in sale_line.tax_id:
+                            tax_name.append(tax.name)
+                    tax_id = self.env["account.tax"].search([('name', 'in' ,tax_name),("type_tax_use",'=','sale')])
+
+                    sale_lines.append((0, 0,{
+                        "order_id":sale_order.id,
+                        "product_id" : product.id,
+                        "currency_id": currrency.id,
+                        "name": sale_line.name,
+                        "product_uom": uom_id.id,
+                        "product_uom_qty": sale_line.product_uom_qty,
+                        "price_unit":sale_line.price_unit,
+                        "tax_id":tax_id.ids,
+                        "analytic_account_id":analytic_account_id.id,
+                        #"analytic_tag_ids":analytic_tag_ids
+                    }))
+
+            update_params["order_line"] = sale_lines
         print("---------------update_params------")
         print(update_params)
         #res_sale_order = self.env["sale.order"].write(update_params)
@@ -186,46 +189,87 @@ class ProductApiService(Component):
         }
         print("--------create_params---------")
         print(create_params)
-        #
         #lines
         sale_lines = []
-        for sale_line in product_category_param.lines:
-            product = self.env["product.product"].search([('default_code','=',sale_line.product_id)],limit=1)
-            product_uom = self.env["uom.uom"].search([('name','=',sale_line.product_uom)],limit=1)
-            print("---product_uom---")
-            print(product_uom)
-            analytic_lines = []
-            if sale_line.analytic_line_ids:
-                for analytic_line in sale_line.analytic_line_ids:
-                    analytic_lines.append(analytic_line.name)
-            analytic_account_id  = self.env["account.analytic.account"].search([('name','in',analytic_lines),("active","=",True)],limit=1)
-            #print(self.env["account.analytic.account"].search([('name','in',analytic_lines),("active","=",True)]))
-            """
-            tag_line = []
-            if sale_line.analytic_tag_ids:
-                for tag_line in sale_line.analytic_tag_ids:
-                    tag_line.append(tag_line.name)
-            analytic_tag_ids: self.env["account.analytic.tag"].search([('name', 'in' ,tag_line)])
-            """
-            #taxes
-            tax_name = []
-            if sale_line.tax_id:
-                for tax in sale_line.tax_id:
-                    print("TAXT_REQUEST")
-                    print(tax)
-                    tax_name.append(tax.name)
-            tax_id = self.env["account.tax"].search([('name', 'in' ,tax_name),("type_tax_use",'=','sale')])
-            sale_lines.append((0, 0,{
-                "product_id" : product.id,
-                "currency_id": currrency.id,
-                "name": sale_line.name,
-                "product_uom": product_uom.id,
-                "product_uom_qty": sale_line.product_uom_qty,
-                "price_unit":sale_line.price_unit,
-                "tax_id": tax_id.ids,
-                "analytic_account_id":analytic_account_id.id,
-                #"analytic_tag_ids":analytic_tag_ids
-            }))
+        if type_id.sale_line_operation and type_id.sale_line_operation in ('notcreate_to_note'):
+            sale_lines = []
+            for sale_line in product_category_param.lines:
+                product = self.env["product.product"].search([('default_code','=',sale_line.product_id)],limit=1)
+                product_uom = self.env["uom.uom"].search([('name','=',sale_line.product_uom)],limit=1)
+                print("---product_uom---")
+                print(product_uom)
+                analytic_lines = []
+                if sale_line.analytic_line_ids:
+                    for analytic_line in sale_line.analytic_line_ids:
+                        analytic_lines.append(analytic_line.name)
+                analytic_account_id  = self.env["account.analytic.account"].search([('name','in',analytic_lines),("active","=",True)],limit=1)
+                #print(self.env["account.analytic.account"].search([('name','in',analytic_lines),("active","=",True)]))
+                """
+                tag_line = []
+                if sale_line.analytic_tag_ids:
+                    for tag_line in sale_line.analytic_tag_ids:
+                        tag_line.append(tag_line.name)
+                analytic_tag_ids: self.env["account.analytic.tag"].search([('name', 'in' ,tag_line)])
+                """
+                #taxes
+                tax_name = []
+                if sale_line.tax_id:
+                    for tax in sale_line.tax_id:
+                        print("TAXT_REQUEST")
+                        print(tax)
+                        tax_name.append(tax.name)
+                tax_id = self.env["account.tax"].search([('name', 'in' ,tax_name),("type_tax_use",'=','sale')])
+                note_table_head = ["Producto","Moneda", "Unidad de medidad", "Cuenta Analítica", "Impuesto", "Cantidad","Precio Unitario"]
+                sale_lines.append([
+                    sale_line.name ,
+                    currrency.name,
+                    product_uom.name,
+                    analytic_account_id.name,
+                    tax_id.name,
+                    sale_line.product_uom_qty,
+                    sale_line.price_unit
+                ])
+                create_params["note"] = tabulate(sale_lines, headers=note_table_head, tablefmt="grid")
+        elif type_id.sale_line_operation and type_id.sale_line_operation in ('notcreate'):
+                print("no created lines")
+        else:
+            for sale_line in product_category_param.lines:
+                product = self.env["product.product"].search([('default_code','=',sale_line.product_id)],limit=1)
+                product_uom = self.env["uom.uom"].search([('name','=',sale_line.product_uom)],limit=1)
+                print("---product_uom---")
+                print(product_uom)
+                analytic_lines = []
+                if sale_line.analytic_line_ids:
+                    for analytic_line in sale_line.analytic_line_ids:
+                        analytic_lines.append(analytic_line.name)
+                analytic_account_id  = self.env["account.analytic.account"].search([('name','in',analytic_lines),("active","=",True)],limit=1)
+                #print(self.env["account.analytic.account"].search([('name','in',analytic_lines),("active","=",True)]))
+                """
+                tag_line = []
+                if sale_line.analytic_tag_ids:
+                    for tag_line in sale_line.analytic_tag_ids:
+                        tag_line.append(tag_line.name)
+                analytic_tag_ids: self.env["account.analytic.tag"].search([('name', 'in' ,tag_line)])
+                """
+                #taxes
+                tax_name = []
+                if sale_line.tax_id:
+                    for tax in sale_line.tax_id:
+                        print("TAXT_REQUEST")
+                        print(tax)
+                        tax_name.append(tax.name)
+                tax_id = self.env["account.tax"].search([('name', 'in' ,tax_name),("type_tax_use",'=','sale')])
+                sale_lines.append((0, 0,{
+                    "product_id" : product.id,
+                    "currency_id": currrency.id,
+                    "name": sale_line.name,
+                    "product_uom": product_uom.id,
+                    "product_uom_qty": sale_line.product_uom_qty,
+                    "price_unit":sale_line.price_unit,
+                    "tax_id": tax_id.ids,
+                    "analytic_account_id":analytic_account_id.id,
+                    #"analytic_tag_ids":analytic_tag_ids
+                }))
         create_params["order_line"] = sale_lines
         print("---------------create_params------")
         print(create_params)

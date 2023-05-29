@@ -13,6 +13,7 @@ class ProductApiService(Component):
         product New API Services
         Services developed with the new api provided by base_rest
     """
+    _log_calls_in_db = True
     @restapi.method(
         [(["/stockpicking"], "POST")],
         input_param=Datamodel("stock.picking.search.param"),

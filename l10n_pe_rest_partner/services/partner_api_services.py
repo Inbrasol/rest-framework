@@ -14,7 +14,7 @@ class PartnerApiService(Component):
         Partner New API Services
         Services developed with the new api provided by base_rest
     """
-
+    _log_calls_in_db = True
     @restapi.method(
         [(["/", "/search"], "GET")],
         input_param=Datamodel("l10n_pe.partner.search.param"),
