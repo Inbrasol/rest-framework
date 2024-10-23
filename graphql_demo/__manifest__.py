@@ -3,12 +3,11 @@
 
 {
     "name": "GraphQL Demo",
-    "version": "14.0.1.0.0",
+    "version": "17.0.1.0.1",
     "license": "LGPL-3",
     "author": "ACSONE SA/NV, Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/rest-framework",
     "depends": ["graphql_base"],
-    "external_dependencies": {"python": ["graphene"]},
     "development_status": "Beta",
     "maintainers": ["sbidoul"],
     "installable": True,

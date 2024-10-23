@@ -7,7 +7,7 @@
 import copy
 
 from odoo import http
-from odoo.tests.common import SavepointCase, TransactionCase, get_db_name
+from odoo.tests.common import TransactionCase, get_db_name
 
 from odoo.addons.component.core import (
     WorkContext,
@@ -16,7 +16,7 @@ from odoo.addons.component.core import (
 )
 from odoo.addons.component.tests.common import (
     ComponentRegistryCase,
-    SavepointComponentCase,
+    TransactionComponentCase,
     new_rollbacked_env,
 )
 
@@ -26,7 +26,7 @@ from ..core import (
     _rest_controllers_per_module,
     _rest_services_databases,
 )
-from ..tools import _inspect_methods
+from ..tools import ROUTING_DECORATOR_ATTR, _inspect_methods
 
 
 class RegistryMixin(object):
@@ -61,11 +61,8 @@ class RestServiceRegistryCase(ComponentRegistryCase):
 
         class_or_instance._service_registry = RestServicesRegistry()
         # take a copy of registered controllers
-        controllers = http.controllers_per_module
-        http.controllers_per_module = controllers
-
-        class_or_instance._controllers_per_module = copy.deepcopy(
-            http.controllers_per_module
+        class_or_instance._controller_children_classes = copy.deepcopy(
+            http.Controller.children_classes
         )
         class_or_instance._original_addon_rest_controllers_per_module = copy.deepcopy(
             _rest_controllers_per_module[_get_addon_name(class_or_instance.__module__)]
@@ -144,7 +141,9 @@ class RestServiceRegistryCase(ComponentRegistryCase):
     @staticmethod
     def _teardown_registry(class_or_instance):
         ComponentRegistryCase._teardown_registry(class_or_instance)
-        http.controllers_per_module = class_or_instance._controllers_per_module
+        http.Controller.children_classes = (
+            class_or_instance._controller_children_classes
+        )
         db_name = get_db_name()
         _component_databases[db_name] = class_or_instance._original_components
         _rest_services_databases[
@@ -169,28 +168,32 @@ class RestServiceRegistryCase(ComponentRegistryCase):
             )
 
     @staticmethod
-    def _get_controller_for(service):
-        addon_name = "{}_{}_{}".format(
+    def _get_controller_for(service, addon="base_rest"):
+        identifier = "{}_{}_{}".format(
             get_db_name(),
             service._collection.replace(".", "_"),
             service._usage.replace(".", "_"),
         )
-        controllers = http.controllers_per_module.get(addon_name, [])
+        controllers = [
+            controller
+            for controller in http.Controller.children_classes.get(addon, [])
+            if getattr(controller, "_identifier", None) == identifier
+        ]
         if not controllers:
             return
-        return controllers[0][1]
+        return controllers[-1]
 
     @staticmethod
     def _get_controller_route_methods(controller):
         methods = {}
         for name, method in _inspect_methods(controller):
-            if hasattr(method, "routing"):
+            if hasattr(method, ROUTING_DECORATOR_ATTR):
                 methods[name] = method
         return methods
 
     @staticmethod
-    def _get_service_component(class_or_instance, usage):
-        collection = _PseudoCollection(
+    def _get_service_component(class_or_instance, usage, collection=None):
+        collection = collection or _PseudoCollection(
             class_or_instance._collection_name, class_or_instance.env
         )
         work = WorkContext(
@@ -202,48 +205,56 @@ class RestServiceRegistryCase(ComponentRegistryCase):
 
 
 class TransactionRestServiceRegistryCase(TransactionCase, RestServiceRegistryCase):
+    """Adds Odoo Transaction to inherited from ComponentRegistryCase.
 
-    # pylint: disable=W8106
-    def setUp(self):
-        # resolve an inheritance issue (common.TransactionCase does not use
-        # super)
-        TransactionCase.setUp(self)
-        RestServiceRegistryCase._setup_registry(self)
-        self.base_url = self.env["ir.config_parameter"].get_param("web.base.url")
+    This class doesn't set up the registry for you.
+    You're supposed to explicitly call `_setup_registry` and `_teardown_registry`
+    when you need it, either on setUpClass and tearDownClass or setUp and tearDown.
 
-    def tearDown(self):
-        RestServiceRegistryCase._teardown_registry(self)
-        TransactionCase.tearDown(self)
+    class MyTestCase(TransactionRestServiceRegistryCase):
+        def setUp(self):
+            super().setUp()
+            self._setup_registry(self)
 
+        def tearDown(self):
+            self._teardown_registry(self)
+            super().tearDown()
 
-class SavepointRestServiceRegistryCase(SavepointCase, RestServiceRegistryCase):
+    class MyTestCase(TransactionRestServiceRegistryCase):
+        @classmethod
+        def setUpClass(cls):
+            super().setUpClass()
+            cls._setup_registry(cls)
+
+        @classmethod
+        def tearDownClass(cls):
+            cls._teardown_registry(cls)
+            super().tearDownClass()
+    """
 
     # pylint: disable=W8106
     @classmethod
     def setUpClass(cls):
-        # resolve an inheritance issue (common.SavepointCase does not use
+        # resolve an inheritance issue (common.TransactionCase does not use
         # super)
-        SavepointCase.setUpClass()
-        RestServiceRegistryCase._setup_registry(cls)
+        TransactionCase.setUpClass()
         cls.base_url = cls.env["ir.config_parameter"].get_param("web.base.url")
 
     @classmethod
     def tearDownClass(cls):
-        RestServiceRegistryCase._teardown_registry(cls)
-        SavepointCase.tearDownClass()
+        TransactionCase.tearDownClass()
 
 
-class BaseRestCase(SavepointComponentCase, RegistryMixin):
+class BaseRestCase(TransactionComponentCase, RegistryMixin):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.setUpRegistry()
         cls.base_url = cls.env["ir.config_parameter"].get_param("web.base.url")
+        cls.registry.enter_test_mode(cls.env.cr)
 
-    def setUp(self, *args, **kwargs):
-        super().setUp(*args, **kwargs)
-        self.registry.enter_test_mode(self.env.cr)
-
-    def tearDown(self):
-        self.registry.leave_test_mode()
-        super().tearDown()
+    # pylint: disable=W8110
+    @classmethod
+    def tearDownClass(cls):
+        cls.registry.leave_test_mode()
+        super().tearDownClass()

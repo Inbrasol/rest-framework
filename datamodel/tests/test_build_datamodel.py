@@ -2,7 +2,8 @@
 # Copyright 2019 ACSONE SA/NV
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
-import mock
+from unittest import mock
+
 from marshmallow_objects.models import Model as MarshmallowModel
 
 from odoo import SUPERUSER_ID, api
@@ -68,6 +69,7 @@ class TestBuildDatamodel(DatamodelRegistryCase):
             ["base", "datamodel1", "datamodel2"], list(self.datamodel_registry)
         )
 
+    # pylint: disable=R7980
     def test_inherit_bases(self):
         """Check __bases__ of Datamodel with _inherit"""
 
@@ -76,11 +78,11 @@ class TestBuildDatamodel(DatamodelRegistryCase):
             field_str1 = fields.String(load_default="field_str1")
 
         class Datamodel2(Datamodel):
-            _inherit = "datamodel1"
+            _inherit = "datamodel1"  # pylint:disable=R8180
             field_str2 = fields.String(load_default="field_str2")
 
         class Datamodel3(Datamodel):
-            _inherit = "datamodel1"
+            _inherit = "datamodel1"  # pylint:disable=R8180
             field_str3 = fields.String(load_default="field_str3")
 
         Datamodel1._build_datamodel(self.datamodel_registry)
@@ -205,6 +207,7 @@ class TestBuildDatamodel(DatamodelRegistryCase):
         # we inspect that our custom build has been executed
         self.assertTrue(self.env.datamodels["datamodel1"]._build_done)
 
+    # pylint: disable=W8110
     def test_inherit_attrs(self):
         """Check attributes inheritance of Datamodels with _inherit"""
 

@@ -38,11 +38,14 @@ odoo.define("base_rest.swagger_ui", function (require) {
                 onComplete: function () {
                     if (this.web_btn === undefined) {
                         this.web_btn = $(
-                            "<a class='swg-odoo-web-btn' href='/web' accesskey='h'><i class='fa fa-th-large'></i></a>"
+                            "<a class='fa fa-th-large swg-odoo-web-btn' href='/web' accesskey='h'></a>"
                         );
                         $(".topbar").prepend(this.web_btn);
                     }
                 },
+                oauth2RedirectUrl:
+                    window.location.origin +
+                    "/base_rest/static/lib/swagger-ui-3.51.1/oauth2-redirect.html",
             };
             const config = this.$el.data("settings");
             return Object.assign({}, defaults, config);

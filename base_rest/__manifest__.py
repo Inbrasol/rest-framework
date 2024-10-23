@@ -6,26 +6,32 @@
     "summary": """
         Develop your own high level REST APIs for Odoo thanks to this addon.
         """,
-    "version": "14.0.4.8.0",
+    "version": "16.0.1.0.2",
     "development_status": "Beta",
     "license": "LGPL-3",
     "author": "ACSONE SA/NV, " "Odoo Community Association (OCA)",
-    "maintainers": ["lmignon"],
+    "maintainers": [],
     "website": "https://github.com/OCA/rest-framework",
-    "depends": ["component"],
+    "depends": ["component", "web"],
     "data": [
-        "views/assets_template.xml",
         "views/openapi_template.xml",
         "views/base_rest_view.xml",
     ],
-    "demo": [],
+    "assets": {
+        "web.assets_frontend": [
+            "base_rest/static/src/scss/base_rest.scss",
+            "base_rest/static/src/js/swagger_ui.js",
+            "base_rest/static/src/js/swagger.js",
+        ],
+    },
     "external_dependencies": {
         "python": [
             "cerberus",
             "pyquerystring",
             "parse-accept-language",
-            "apispec>=4.0.0",
+            # adding version causes missing-manifest-dependency false positives
+            "apispec",
         ]
     },
-    "installable": True,
+    "installable": False,
 }

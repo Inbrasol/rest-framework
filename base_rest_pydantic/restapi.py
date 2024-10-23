@@ -1,12 +1,13 @@
 # Copyright 2021 ACSONE SA/NV
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
+import json
 
 from odoo import _
 from odoo.exceptions import UserError
 
 from odoo.addons.base_rest import restapi
 
-from pydantic import BaseModel, ValidationError, validate_model
+from pydantic import BaseModel, ValidationError
 
 
 def replace_ref_in_schema(item, original_schema):
@@ -40,21 +41,28 @@ class PydanticModel(restapi.RestMethodParam):
         try:
             return self._model_cls(**params)
         except ValidationError as ve:
-            raise UserError(_("BadRequest %s") % ve.json(indent=0))
+            raise UserError(_("BadRequest %s") % ve.json(indent=0)) from ve
 
     def to_response(self, service, result):
         # do we really need to validate the instance????
-        json_dict = result.dict()
-        to_validate = (
-            json_dict if not result.__config__.orm_mode else result.dict(by_alias=True)
-        )
-        *_, validation_error = validate_model(self._model_cls, to_validate)
-        if validation_error:
-            raise SystemError(_("Invalid Response %s") % validation_error)
+        json_dict = result.model_dump()
+        orm_mode = result.model_config.get("from_attributes", None)
+        to_validate = json_dict if orm_mode else result.model_dump(by_alias=True)
+        # Ensure that to_validate is under json format
+        try:
+            json.loads(to_validate)
+            to_validate_jsonified = to_validate
+        except TypeError:
+            to_validate_jsonified = json.dumps(to_validate)
+
+        try:
+            self._model_cls.model_validate_json(to_validate_jsonified)
+        except ValidationError as validation_error:
+            raise SystemError(_("Invalid Response")) from validation_error
         return json_dict
 
     def to_openapi_query_parameters(self, servic, spec):
-        json_schema = self._model_cls.schema()
+        json_schema = self._model_cls.model_json_schema()
         parameters = []
         for prop, spec in list(json_schema["properties"].items()):
             params = {
@@ -106,10 +114,10 @@ class PydanticModel(restapi.RestMethodParam):
         }
 
     def to_json_schema(self, service, spec, direction):
-        schema = self._model_cls.schema()
+        schema = self._model_cls.model_json_schema(by_alias=False)
         schema_name = schema["title"]
         if schema_name not in spec.components.schemas:
-            definitions = schema.get("definitions", {})
+            definitions = schema.pop("$defs", {})
             for name, sch in definitions.items():
                 if name in spec.components.schemas:
                     continue
@@ -167,15 +175,17 @@ class PydanticModelList(PydanticModel):
         if self._min_items is not None and len(values) < self._min_items:
             raise ExceptionClass(
                 _(
-                    "BadRequest: Not enough items in the list (%s < %s)"
-                    % (len(values), self._min_items)
+                    "BadRequest: Not enough items in the list (%(current)s < %(expected)s)",
+                    current=len(values),
+                    expected=self._min_items,
                 )
             )
         if self._max_items is not None and len(values) > self._max_items:
             raise ExceptionClass(
                 _(
-                    "BadRequest: Too many items in the list (%s > %s)"
-                    % (len(values), self._max_items)
+                    "BadRequest: Too many items in the list (%(current)s > %(expected)s)",
+                    current=len(values),
+                    expected=self._max_items,
                 )
             )
 
