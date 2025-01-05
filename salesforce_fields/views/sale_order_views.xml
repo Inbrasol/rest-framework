@@ -1,0 +1,21 @@
+<odoo>
+    <data>
+        <!-- Inherit the sale.order form view -->
+        <record id="view_order_form_inherit_salesforce" model="ir.ui.view">
+            <field name="name">sale.order.form.inherit.salesforce</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <!-- Add a new page named 'Salesforce' -->
+                <xpath expr="//notebook" position="inside">
+                    <page  name="salesforce" string="Salesforce">
+                        <!-- Add your custom fields here -->
+                        <group>
+                            <field name="sf_id"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
