@@ -5,3 +5,8 @@ class CrmLead(models.Model):
     _inherit = 'crm.lead'
 
     sf_id = fields.Char(string="Salesforce ID", index=True, unique=True)
+
+class CrmLeadProduct(models.Model):
+    _inherit = 'crm.lead.product'
+
+    sf_id = fields.Char(string="Salesforce ID", index=True, unique=True)

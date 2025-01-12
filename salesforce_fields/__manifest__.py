@@ -11,7 +11,7 @@
     "website": "https://github.com/OCA/partner-contact",
     "author": "Tecnativa, Odoo Community Association (OCA)",
     "license": "AGPL-3",
-    "depends": ["base", "account", "sale", "stock"],
+    "depends": ["base", "account", "sale", "stock", "iws_crm_purchase"],
     "data": [
         "views/res_company_views.xml",
         "views/res_user_views.xml",
