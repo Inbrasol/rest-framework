@@ -6,7 +6,12 @@
         <field name="arch" type="xml">
             <xpath expr="//page[@name='general_information']" position="after">
                 <page name="salesforce" string="Salesforce">
-                    <field name="sf_id"/>
+                    <group>
+                        <group>
+                            <field name="sf_id"/>
+                            <field name="price_book_entry_id"/>
+                        </group>
+                    </group>
                 </page>
             </xpath>
         </field>
