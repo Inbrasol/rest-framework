@@ -10,4 +10,4 @@ class ResPartner(models.Model):
     _inherit = "res.partner"
 
     sf_id = fields.Char(string="Salesforce ID", index=True, unique=True)
-    skip_sync = fields.Boolean(string='Skip Sync', default=False, copy=False)
+    #skip_sync = fields.Boolean(string='Skip Sync', default=False, copy=False)
