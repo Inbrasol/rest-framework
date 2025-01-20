@@ -9,7 +9,8 @@
                     <group>
                         <group>
                             <field name="sf_id"/>
-                            <field name="price_book_entry_id"/>
+                            <field name="sf_pricebook_entry_id"/>
+                            <field name="sf_pricebook_id"/>
                         </group>
                     </group>
                 </page>
