@@ -37,7 +37,7 @@ class CrmLeadProduct(models.Model):
             'categ_id': 1,
             'list_price': vals.get('price_unit', 0.0),
             'standard_price': vals.get('standard_price', 0.0),
-            'taxes_id': [(6, 0, [tax.id for tax in vals.get('tax_id') or []])],
+            'taxes_id': [(6, 0, [tax.id for tax in (vals.get('tax_id') or []) if hasattr(tax, 'id')])],
             'volume': vals.get('volume', 0.0),
             'weight': vals.get('weight', 0.0),
             'uom_id': vals.get('uom_id'),
