@@ -7,7 +7,10 @@
             <xpath expr="//page[@name='lead']" position="inside">
                 <group>
                     <group string="Salesforce" name="Salesforce">
-                        <field name="sf_id"/>
+                        <field name="sf_id" readonly="1"/>
+                        <field name="sf_integration_status" readonly="1"/>
+                        <field name="sf_integration_datetime" readonly="1"/>
+                        <field name="sf_integration_error" readonly="1"/>
                     </group>
                 </group>
             </xpath>

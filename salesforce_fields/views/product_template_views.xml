@@ -8,9 +8,10 @@
                 <page name="salesforce" string="Salesforce">
                     <group>
                         <group>
-                            <field name="sf_id"/>
-                            <field name="sf_pricebook_entry_id"/>
-                            <field name="sf_pricebook_id"/>
+                            <field name="sf_id" readonly="1"/>
+                            <field name="sf_integration_status" readonly="1"/>
+                            <field name="sf_integration_datetime" readonly="1"/>
+                            <field name="sf_integration_error" readonly="1"/>
                         </group>
                     </group>
                 </page>

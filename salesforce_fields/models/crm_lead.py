@@ -4,13 +4,28 @@ from odoo import _, api, fields, models
 class CrmLead(models.Model):
     _inherit = 'crm.lead'
 
-    sf_id = fields.Char(string="Salesforce ID", index=True, unique=True)
+    sf_id = fields.Char(string='Salesforce ID', index=True, unique=True)
+    sf_integration_status = fields.Selection([
+        ('pending', 'Pending'),
+        ('success', 'Success'),
+        ('failed', 'Failed')
+    ], string='Integration Status', default='pending', help="Status of the Salesforce integration")
+    sf_integration_datetime = fields.Datetime(string='Integration Datetime')
+    sf_integration_error = fields.Text(string='Integration Error')
+
 
 class CrmLeadProduct(models.Model):
     
     _inherit = 'crm.lead.product'
-
-    sf_id = fields.Char(string="Salesforce ID", index=True, unique=True)
+    
+    sf_id = fields.Char(string='Salesforce ID', index=True, unique=True)
+    sf_integration_status = fields.Selection([
+        ('pending', 'Pending'),
+        ('success', 'Success'),
+        ('failed', 'Failed')
+    ], string='Integration Status', default='pending', help="Status of the Salesforce integration")
+    sf_integration_datetime = fields.Datetime(string='Integration Datetime')
+    sf_integration_error = fields.Text(string='Integration Error')
     sf_pricebook_entry_id = fields.Char(string="Salesforce Price Book Entry ID", index=True)
     sf_pricebook_id = fields.Char(string="Salesforce Price Book ID", index=True)
 
