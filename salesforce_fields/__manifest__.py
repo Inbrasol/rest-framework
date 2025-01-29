@@ -16,7 +16,7 @@
         "views/res_company_views.xml",
         "views/res_user_views.xml",
         "views/res_currency_views.xml",
-        "views/res_partner_views.xml",
+        #"views/res_partner_views.xml",
         "views/sale_order_views.xml",
         "views/crm_lead_views.xml",
         "views/product_template_views.xml",
@@ -24,6 +24,4 @@
     ],
     "application": False,
     "installable": True,
-    "auto_install": True,
-    'pre_init_hook': 'pre_init_hook',
 }
