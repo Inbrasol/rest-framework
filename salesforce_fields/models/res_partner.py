@@ -17,3 +17,10 @@ class ResPartner(models.Model):
     ], string='Integration Status', default='pending', help="Status of the Salesforce integration")
     sf_integration_datetime = fields.Datetime(string='Integration Datetime')
     sf_integration_error = fields.Text(string='Integration Error')
+
+
+class L10nLatamIdentificationType(models.Model):
+
+    _inherit = "l10n_latam.identification.type"
+
+    code = fields.Char(string='Code', help='Code of the identification type')
