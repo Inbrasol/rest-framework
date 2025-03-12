@@ -8,7 +8,7 @@
             <xpath expr="//notebook" position="inside">
                 <page name="Salesforce" string="Salesforce">
                     <group>
-                        <field name="sf_id" readonly="1"/>
+                        <field name="sf_id"/>
                     </group>
                 </page>
             </xpath>
