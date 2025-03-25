@@ -11,7 +11,6 @@
                         <field name="sf_integration_status" readonly="1"/>
                         <field name="sf_integration_datetime" readonly="1"/>
                         <field name="sf_integration_error" readonly="1"/>
-                        <field name="sf_user_name" readonly= "groups_id not in base.group_system"/>
                     </group>
                 </page>
             </xpath>
