@@ -15,24 +15,17 @@
                 </group>
             </xpath>
             <xpath expr="//field[@name='user_id']" position="after">
-                <field name="sf_owner_id" options="{'no_open': True}"/>
+                <field name="sf_owner_id" readonly="1"/>
             </xpath>
         </field>
     </record>
     <record id="crm_lead_view_kanban_inherit" model="ir.ui.view">
         <field name="name">crm.lead.kanban</field>
         <field name="model">crm.lead</field>
-        <field name="inherit_id" ref="crm.crm_lead_view_kanban" />
+        <field name="inherit_id" ref="crm.view_crm_lead_kanban" />
         <field name="arch" type="xml">
-            <xpath expr="//kanban" position="inside">
-                <templates>
-                    <t t-name="kanban-box">
-                        <div t-attf-class="oe_kanban_global_click">
-                            <field name="sf_owner_id" 
-                            widget="badge" options="{'class': 'oe_kanban_badge'}"/>
-                        </div>
-                    </t>
-                </templates>
+            <xpath expr="//div[contains(@class, 'o_kanban_record')]" position="inside">
+                <field name="sf_owner_id" widget="many2one_avatar_user"/>
             </xpath>
         </field>
     </record>
