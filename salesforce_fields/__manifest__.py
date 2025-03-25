@@ -14,6 +14,8 @@
     "depends": ["base", "account", "sale", "stock", "iws_crm_purchase"],
     "data": [
         "data/l10n_latam_identification_type_data.xml",
+        "security/ir.model.access.csv",
+        "views/salesforce_user_views.xml",
         "views/res_company_views.xml",
         "views/res_user_views.xml",
         "views/res_currency_views.xml",

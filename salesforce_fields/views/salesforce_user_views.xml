@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_salesforce_user_tree" model="ir.ui.view">
+        <field name="name">salesforce.user.tree</field>
+        <field name="model">salesforce.user</field>
+        <field name="arch" type="xml">
+            <tree string="Salesforce Users">
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="sf_id"/>
+                <field name="sf_username"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_salesforce_user_form" model="ir.ui.view">
+        <field name="name">salesforce.user.form</field>
+        <field name="model">salesforce.user</field>
+        <field name="arch" type="xml">
+            <form string="Salesforce User">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="user_id"/>
+                        <field name="sf_id"/>
+                        <field name="sf_username"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_salesforce_user" model="ir.actions.act_window">
+        <field name="name">Salesforce Users</field>
+        <field name="res_model">salesforce.user</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_salesforce_user" name="Salesforce Users" 
+    parent="base.menu_custom" action="action_salesforce_user" sequence="100"/>
+</odoo>

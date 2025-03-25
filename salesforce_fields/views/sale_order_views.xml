@@ -18,6 +18,9 @@
                         </group>
                     </page>
                 </xpath>
+                <xpath expr="//field[@name='user_id']" position="after">
+                    <field name="sf_owner_id" readonly="1" widget="many2one_avatar_user"/>
+                </xpath>
             </field>
         </record>
     </data>

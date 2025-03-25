@@ -15,10 +15,11 @@
                 </group>
             </xpath>
             <xpath expr="//field[@name='user_id']" position="after">
-                <field name="sf_owner_id" readonly="1"/>
+                <field name="sf_owner_id" readonly="1" widget="many2one_avatar_user"/>
             </xpath>
         </field>
     </record>
+
     <record id="crm_lead_view_kanban_inherit" model="ir.ui.view">
         <field name="name">crm.lead.kanban</field>
         <field name="model">crm.lead</field>
