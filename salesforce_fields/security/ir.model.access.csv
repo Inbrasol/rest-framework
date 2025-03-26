@@ -1,6 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_salesforce_salesforce_user,salesforce.salesforce user,model_salesforce_salesforce_user,base.group_user,1,0,0,0
-access_salesforce_salesforce_user_admin,salesforce.salesforce user admin,model_salesforce_salesforce_user,base.group_system,1,1,1,1
-access_salesforce_salesforce_user_sales,salesforce.salesforce user sales,model_salesforce_salesforce_user,sales_team.group_sale_salesman,1,0,0,0
-access_salesforce_salesforce_user_sale,salesforce.salesforce user sale,model_salesforce_salesforce_user,sales_team.group_sale_manager,1,0,0,0
-access_salesforce_salesforce_user_invoicing,salesforce.salesforce user invoicing,model_salesforce_salesforce_user,account.group_account_invoice,1,0,0,0
+access_salesforce_user,salesforce user,model_salesforce_user,base.group_user,1,0,0,0
+access_salesforce_user_admin,salesforce user admin,model_salesforce_user,base.group_system,1,1,1,1
+access_salesforce_user_sales,salesforce user sales,model_salesforce_user,sales_team.group_sale_salesman,1,0,0,0
+access_salesforce_user_sale,salesforce user sale,model_salesforce_user,sales_team.group_sale_manager,1,0,0,0
+access_salesforce_user_invoicing,salesforce user invoicing,model_salesforce_user,account.group_account_invoice,1,0,0,0

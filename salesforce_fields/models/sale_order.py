@@ -15,8 +15,8 @@ class SaleOrder(models.Model):
     sf_owner_id = fields.Many2one('salesforce.user', string='Salesforce Owner')
 
     def create(self, vals):
-        if 'sf_owner_id' not in vals:
-            vals['sf_owner_id'] = self.opportunity_id.sf_owner_id.id
+        if 'sf_owner_id' not in vals and self.opportunity_id and self.opportunity_id.sf_owner_id:
+                vals['sf_owner_id'] = self.opportunity_id.sf_owner_id.id
         return super(SaleOrder, self).create(vals)
 
 class SaleOrderLine(models.Model):

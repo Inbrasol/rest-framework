@@ -15,7 +15,7 @@ class AccountMove(models.Model):
     sf_owner_id = fields.Many2one('salesforce.user', string='Salesforce Owner')
 
     def create(self, vals):
-        if 'sf_owner_id' not in vals:
+        if 'sf_owner_id' not in vals and self.sale_order_id.sf_owner_id:
             vals['sf_owner_id'] = self.sale_order_id.sf_owner_id.id
         return super(AccountMove, self).create(vals)
     
