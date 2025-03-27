@@ -12,12 +12,13 @@ class SaleOrder(models.Model):
     ], string='Integration Status', default='pending', help="Status of the Salesforce integration")
     sf_integration_datetime = fields.Datetime(string='Integration Datetime')
     sf_integration_error = fields.Text(string='Integration Error')
-    sf_owner_id = fields.Many2one('salesforce.user', string='Salesforce Owner')
+    sf_owner_id = fields.Many2one('salesforce.user', string='Salesforce Owner', default=lambda self: self._get_sf_owner_id())
 
-    def create(self, vals):
-        if 'sf_owner_id' not in vals and self.opportunity_id and self.opportunity_id.sf_owner_id:
-                vals['sf_owner_id'] = self.opportunity_id.sf_owner_id.id
-        return super(SaleOrder, self).create(vals)
+    def _get_sf_owner_id(self):
+        if self.opportunity_id and self.opportunity_id.sf_owner_id:
+            return self.opportunity_id.sf_owner_id.id
+        return False
+
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'

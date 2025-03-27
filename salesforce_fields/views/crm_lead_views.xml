@@ -14,8 +14,12 @@
                     </group>
                 </group>
             </xpath>
-            <xpath expr="//field[@name='user_id']" position="after">
-                <field name="sf_owner_id" readonly="1" widget="many2one_avatar_user"/>
+            <xpath expr="//field[@name='date_deadline']" position="before">
+                <field name="sf_owner_id" readonly="1" widget="many2one_avatar_user" invisible="source_system = 'odoo'"/>
+                <field name="source_system" readonly="1" placeholder="Source System" widget="badge"/>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="replace">
+                <field name="user_id" context="{'default_sales_team_id': team_id}" widget="many2one_avatar_user" invisible="source_system = 'salesforce'"/>
             </xpath>
         </field>
     </record>
@@ -25,8 +29,11 @@
         <field name="model">crm.lead</field>
         <field name="inherit_id" ref="crm.view_crm_lead_kanban" />
         <field name="arch" type="xml">
-            <xpath expr="//div[contains(@class, 'o_kanban_record')]" position="inside">
-                <field name="sf_owner_id" widget="many2one_avatar_user"/>
+            <!-- Ubicamos la sección a modificar -->
+            <xpath expr="//div[@class='oe_kanban_bottom_right']/field[@name='user_id']" position="replace">
+                <!-- 🔹 Aquí colocamos el nuevo contenido -->
+                <field name="user_id" widget="many2one_avatar_user" invisible="source_system = 'salesforce'" domain="[('share', '=', False)]"/>
+                <field name="sf_owner_id" widget="many2one_avatar_user" invisible="source_system = 'odoo'"/>
             </xpath>
         </field>
     </record>

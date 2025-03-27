@@ -13,7 +13,11 @@ class CrmLead(models.Model):
     sf_integration_datetime = fields.Datetime(string='Integration Datetime')
     sf_integration_error = fields.Text(string='Integration Error')
     sf_owner_id = fields.Many2one('salesforce.user', string='Salesforce Owner')
-    
+    source_system = fields.Selection([
+        ('salesforce', 'Salesforce'),
+        ('odoo', 'Odoo')
+    ], string='Source System', default='odoo', 
+    help="System from which the lead was created")
 
 class CrmLeadProduct(models.Model):
     
