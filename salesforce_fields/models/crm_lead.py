@@ -62,7 +62,6 @@ class CrmLeadProduct(models.Model):
             'weight': vals.get('weight', 0.0),
             'uom_id': vals.get('uom_id'),
             'uom_po_id': vals.get('uom_id'),
-            'active': True,
-            'company_id': self.company_id.id or self.env.company.id,
+            'active': True
             }
         return product
