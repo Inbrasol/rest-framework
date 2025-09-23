@@ -11,3 +11,5 @@ class SalesforceUser(models.Model):
     sf_id = fields.Char(string='Salesforce ID', required=True)
     sf_username = fields.Char(string='Salesforce Username', required=True)
     active = fields.Boolean(string='Active', default=True)
+    phone = fields.Char(string='Phone')
+    email = fields.Char(string='Email')

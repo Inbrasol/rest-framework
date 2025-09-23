@@ -6,6 +6,8 @@
         <field name="arch" type="xml">
             <tree string="Salesforce Users">
                 <field name="name"/>
+                <field name="phone"/>
+                <field name="email"/>
                 <field name="user_id"/>
                 <field name="partner_id"/>
                 <field name="approval_user_id"/>
@@ -24,6 +26,8 @@
                 <sheet>
                     <group>
                         <field name="name"/>
+                        <field name="phone"/>
+                        <field name="email"/>
                         <field name="user_id"/>
                         <field name="partner_id"/>
                         <field name="approval_user_id"/>
