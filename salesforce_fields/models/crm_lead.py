@@ -18,6 +18,9 @@ class CrmLead(models.Model):
         ('odoo', 'Odoo')
     ], string='Source System', default='odoo', 
     help="System from which the lead was created")
+    sf_retry_count = fields.Integer(string='Retry Count', default=0)
+    sf_last_sync_attempt = fields.Datetime(string='Last Sync Attempt')
+    sf_error_code = fields.Char(string='Error Code')
 
 class CrmLeadProduct(models.Model):
     
@@ -33,6 +36,9 @@ class CrmLeadProduct(models.Model):
     sf_integration_error = fields.Text(string='Integration Error')
     sf_pricebook_entry_id = fields.Char(string="Salesforce Price Book Entry ID", index=True)
     sf_pricebook_id = fields.Char(string="Salesforce Price Book ID", index=True)
+    sf_retry_count = fields.Integer(string='Retry Count', default=0)
+    sf_last_sync_attempt = fields.Datetime(string='Last Sync Attempt')
+    sf_error_code = fields.Char(string='Error Code')
 
     #ORM VALUES
     @api.model

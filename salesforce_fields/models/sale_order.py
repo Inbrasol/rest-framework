@@ -12,6 +12,9 @@ class SaleOrder(models.Model):
     ], string='Integration Status', default='pending', help="Status of the Salesforce integration")
     sf_integration_datetime = fields.Datetime(string='Integration Datetime')
     sf_integration_error = fields.Text(string='Integration Error')
+    sf_retry_count = fields.Integer(string='Retry Count', default=0)
+    sf_last_sync_attempt = fields.Datetime(string='Last Sync Attempt')
+    sf_error_code = fields.Char(string='Error Code')
     sf_owner_id = fields.Many2one('salesforce.user', string='Salesforce Owner')
 
     @api.model
@@ -37,3 +40,6 @@ class SaleOrderLine(models.Model):
     ], string='Integration Status', default='pending', help="Status of the Salesforce integration")
     sf_integration_datetime = fields.Datetime(string='Integration Datetime')
     sf_integration_error = fields.Text(string='Integration Error')
+    sf_retry_count = fields.Integer(string='Retry Count', default=0)
+    sf_last_sync_attempt = fields.Datetime(string='Last Sync Attempt')
+    sf_error_code = fields.Char(string='Error Code')
