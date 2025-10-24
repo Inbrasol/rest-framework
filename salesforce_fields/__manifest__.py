@@ -6,7 +6,7 @@
 {
     "name": "Rest-Salesforce Fields",
     "summary": "Add Salesforce fields to Odoo",
-    "version": "17.0.1.0.0",
+    "version": "17.0.1.0.1",
     "category": "Customer Relationship Management",
     "website": "https://github.com/OCA/partner-contact",
     "author": "Tecnativa, Odoo Community Association (OCA)",
@@ -14,6 +14,7 @@
     "depends": ["base", "account", "sale", "stock", "iws_crm_purchase"],
     "data": [
         "data/l10n_latam_identification_type_data.xml",
+        "security/salesforce_security.xml",
         "security/ir.model.access.csv",
         "views/salesforce_user_views.xml",
         "views/res_company_views.xml",

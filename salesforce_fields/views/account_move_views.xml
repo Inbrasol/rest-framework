@@ -5,6 +5,17 @@
             <field name="model">account.move</field>
             <field name="inherit_id" ref="account.view_move_form"/>
             <field name="arch" type="xml">
+                <!-- Add Salesforce button in header -->
+                <xpath expr="//header" position="inside">
+                    <button name="action_open_in_salesforce"
+                            type="object"
+                            string="Ver en Salesforce"
+                            class="oe_highlight"
+                            icon="fa-cloud"
+                            invisible="not sf_id"
+                            groups="salesforce_fields.group_salesforce_user"
+                            help="Abrir registro en Salesforce"/>
+                </xpath>
                 <!-- Add your custom fields or modifications here -->
                 <notebook position="inside">
                     <page name="salesforce" string="Salesforce">

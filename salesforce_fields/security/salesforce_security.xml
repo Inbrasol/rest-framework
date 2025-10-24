@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Salesforce User Group -->
+        <record id="group_salesforce_user" model="res.groups">
+            <field name="name">Salesforce User</field>
+            <field name="category_id" ref="base.module_category_sales_sales"/>
+            <field name="comment">Users with this group can access Salesforce records from Odoo.</field>
+        </record>
+    </data>
+</odoo>

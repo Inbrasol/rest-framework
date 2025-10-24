@@ -4,6 +4,17 @@
         <field name="model">crm.lead</field>
         <field name="inherit_id" ref="crm.crm_lead_view_form" />
         <field name="arch" type="xml">
+            <!-- Add Salesforce button in header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_open_in_salesforce"
+                        type="object"
+                        string="Ver en Salesforce"
+                        class="oe_highlight"
+                        icon="fa-cloud"
+                        invisible="not sf_id"
+                        groups="salesforce_fields.group_salesforce_user"
+                        help="Abrir registro en Salesforce"/>
+            </xpath>
             <xpath expr="//page[@name='lead']" position="inside">
                 <group>
                     <group string="Salesforce" name="Salesforce">

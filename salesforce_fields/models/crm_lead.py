@@ -1,5 +1,6 @@
 
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 class CrmLead(models.Model):
     _inherit = 'crm.lead'
@@ -16,8 +17,39 @@ class CrmLead(models.Model):
     source_system = fields.Selection([
         ('salesforce', 'Salesforce'),
         ('odoo', 'Odoo')
-    ], string='Source System', default='odoo', 
+    ], string='Source System', default='odoo',
     help="System from which the lead was created")
+
+    def _get_salesforce_base_url(self):
+        """Get Salesforce base URL from backend configuration"""
+        backend = self.env['salesforce.backend'].search([('active', '=', True)], limit=1)
+        if backend:
+            # Extract the instance URL from the backend
+            # For production: https://yourinstance.salesforce.com
+            # For sandbox: https://yourinstance--sandbox.salesforce.com
+            auth_response = backend.authenticate()
+            instance_url = auth_response.get('instance_url', backend.url)
+            return instance_url
+        return None
+
+    def action_open_in_salesforce(self):
+        """Open the record in Salesforce"""
+        self.ensure_one()
+        if not self.sf_id:
+            raise UserError(_("This record is not synchronized with Salesforce."))
+
+        base_url = self._get_salesforce_base_url()
+        if not base_url:
+            raise UserError(_("Salesforce backend is not configured."))
+
+        # Salesforce Lightning URL format: https://instance.lightning.force.com/lightning/r/Opportunity/RECORD_ID/view
+        salesforce_url = f"{base_url}/lightning/r/Opportunity/{self.sf_id}/view"
+
+        return {
+            'type': 'ir.actions.act_url',
+            'url': salesforce_url,
+            'target': 'new',
+        }
 
 class CrmLeadProduct(models.Model):
     
